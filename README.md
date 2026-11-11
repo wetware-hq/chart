@@ -5,11 +5,12 @@
 media_type = "text/vnd.med+markdown"
 extension  = ".med"
 version    = "1.0.0"
+domain     = "pan-clinical (specialty-invariant kernel)"
 
 [substrates]
-context = { id = "[1]", ref = "cursor/plugins/pstack/skills/statechart", logic = "tla" }
+context = { id = "[1]", ref = "cursor/plugins/pstack/skills/statechart", render = ["statechart/tla", "mermaid/*"] }
 graph   = { id = "[2]", ref = "arXiv:2604.27820v1", container = ".og / ~ebnf" }
-workup  = { id = "seed", ref = "cl-aip/mycin", math = "lean" }
+workup  = { id = "seed", ref = "cl-aip/mycin", math = "lean", logic = "tla" }
 
 [pipeline]
 input   = "clinical case --natural-language"
@@ -32,32 +33,34 @@ flowchart LR
   Case["Clinical Case (NL)"] --> Workup["agent.workup"]
   KB[("ObjectGraph KBs [2]")] <-->|"search_index / resolve_context"| Workup
   Workup --> Med[".med Graph-Logic"]
-  Med --> Lower["TLA+ & View Extraction"]
-  Lower --> Bundle["SPEC.tla + SPEC.cfg + view.mjs"]
-  Bundle --> TLC["Statechart SANY + TLC [1]"]
-  TLC --> Render["chart.mmd + Pele SVG + report.md"]
+  Med -->|"Strict: tla + js"| TLC["/statechart SANY + TLC [1]"]
+  TLC --> Chart["Verified stateDiagram-v2 + report.md"]
+  Med -->|"Relaxed: G -> .mermaid"| Mmd["Native .mermaid Frameworks [1]"]
+  Chart --> Pele["CommonMark / Pele SVG"]
+  Mmd --> Pele
 ```
 
 1. **Markdown & ObjectGraph Superset.** Every CommonMark `.md` or OpenGigantic `.og` file is a valid `.med` file. Reference knowledge bases crawled during `agent.workup` and case workups emitted as `.med` share one schema and federate across files via `uri#id` edge targets.
 2. **Traversal Over Injection (`CRAWLS [2]`).** Agents never inject whole corpora; they read `::index`, route node IDs semantically, auto-traverse `:requires`, enforce `scope` at Pass 1, deduplicate `skip-if-known` nodes, and never skip `::warning` blocks.
-3. **Signed Epistemic Tri-Separation (`Mycin`).** Affirmation (`cf > 0`), disconfirmation (`cf < 0`), and ignorance (`cf = 0`) stay distinct. Unmentioned or pending findings bind `0.00` (`"unknown"`), never negative; hedged prose binds intermediate certainty, never `+1.00`.
-4. **Pure Deduction / Explicit Transition Split (`RENDERS [1]`).** Deductive `rule` and `hypothesis` nodes evaluate as pure state-level TLA+ operators, while clinical `action` nodes form the named disjuncts of `Next`, keeping charts inside TLC's 500-state budget and ~20-arrow legibility target.
+3. **Signed Epistemic Tri-Separation (`seed`).** Affirmation (`cf > 0`), disconfirmation (`cf < 0`), and ignorance (`cf = 0`) stay distinct. Unmentioned or pending findings bind `0.00` (`"unknown"`), never negative; hedged prose binds intermediate certainty, never `+1.00`.
+4. **Enforced Pan-Clinical Domain-Invariance.** Core `.med` syntax, node/edge types, certainty math, and crawl/transition logic forbid specialty-bound tokens. Specialty ontologies enter solely through `::meta` (`domain:`), typed measurement scales (`nominal`, `ordinal`, `quantitative`, `temporal`), and federated `uri#id` knowledge graphs; any parser or rule engine hardcoding a single clinical specialty violates `.med` conformance.
+5. **Verified `/statechart` with Full `.mermaid` Relaxation (`RENDERS [1]`).** Deductive `rule`/`hypothesis` operators and explicit `action` transitions lower to SANY/TLC `/statechart` when exhaustive state-space verification is required, and relax freely to any native `.mermaid` diagram family (`stateDiagram-v2`, `flowchart`, `sequenceDiagram`, `timeline`, `gantt`, `xychart-beta`, `erDiagram`, `requirementDiagram`, `quadrantChart`, `mindmap`, `sankey-beta`) whenever topology-matched rendering yields higher clinical interpretability.
 
 ---
 
-## 2. Graph Ontology & Token Cost (`[2]`)
+## 2. Pan-Clinical Graph Ontology & Token Cost (`[2]`)
 
-| Node Type | MYCIN Role (`seed`) | ObjectGraph Role (`[2]`) | Statechart Role (`[1]`) |
+| Node Type | Epistemic Role (`seed`) | ObjectGraph Role (`[2]`) | Render Role (`[1]`) |
 |---|---|---|---|
-| `context` | Entity instance (`entity`, `goals`) | Subgraph container | `VARIABLE` owner & `Done` scope |
-| `finding` | Observable parameter (`ask-first`) | Source-grounded leaf | `VARIABLE` (if `cf = 0.00` + `:resolves`) or constant |
-| `hypothesis` | Goal parameter (`infer-first`) | Derived epistemic node | State operator `CfHyp...` |
-| `rule` | Production `IF P THEN w Q` | Deductive hyperedge | State operator `Rule...` |
-| `action` | Diagnostic inquiry or therapy | Procedural step | Named disjunct(s) in `Next` |
-| `invariant` | Safety or liveness rule | Executable assertion | `INVARIANT` or `PROPERTY` |
-| `meta` | View projection & delta log | `__view`, `__changelog` | `view.mjs` module exports |
+| `context` | Arbitrary clinical entity (`entity`, `goals`) | Subgraph container | `VARIABLE` owner, lifeline, or subgraph |
+| `finding` | Observable across `scale` (`ask-first`) | Source-grounded leaf (`src`) | `VARIABLE` / constant or input node |
+| `hypothesis` | Diagnostic, etiologic, prognostic, or eligibility goal | Derived epistemic node | `CfHyp...` operator or scored target |
+| `rule` | Domain-neutral production `IF P THEN w Q` | Deductive hyperedge | `Rule...` operator or weighted edge |
+| `action` | Exam, lab, imaging, procedure, Rx, consult, disposition | Procedural step | `Next` disjunct, task bar, or message |
+| `invariant` | Contraindication, window, or stewardship gate | Executable assertion | `INVARIANT`/`PROPERTY` or `breaks` guard |
+| `meta` | View projection & provenance delta | `__view`, `__changelog` | `view.mjs` or native `mermaid` fence(s) |
 
-| Edge | Syntax | Crawl (`[2]`) | Semantics (`Mycin` + `[1]`) |
+| Edge | Syntax | Crawl (`[2]`) | Semantics (`seed` + `[1]`) |
 |---|---|---|---|
 | `:contains` | `->[:contains] v` | Structural | Scopes child `context`, `finding`, or `hypothesis` `v` under `context` |
 | `:requires` | `->[:requires] v` | **Auto-loaded** | Premise, guard, or invariant dependency on `v` |
@@ -74,25 +77,43 @@ inductive NodeType | context | finding | hypothesis | rule | action | invariant 
 inductive EdgeType | contains | requires | supports | contradicts | resolves | transitions | supersedes
   deriving DecidableEq, Repr
 
+inductive ClinicalScale | nominal | ordinal | quantitative | temporal
+  deriving DecidableEq, Repr
+
 inductive Scope | all | clinician | orchestrator | worker | patient | custom (s : String)
   deriving DecidableEq, Repr
 
-structure Edge (Id : Type) where
-  src  : Id
-  dst  : Id
+structure Edge (α : Type) where
+  src  : α
+  dst  : α
   kind : EdgeType
   cf   : Option Int := none
 
-structure MedGraph (Id : Type) where
-  nodes : List Id
-  edges : List (Edge Id)
-  kind  : Id → NodeType
-  scope : Id → Scope
+structure MedGraph (α : Type) where
+  nodes : List α
+  edges : List (Edge α)
+  kind  : α → NodeType
+  scale : α → Option ClinicalScale
+  scope : α → Scope
+
+def MedGraph.relabel {α β : Type} (g : MedGraph α) (f : α → β) (fInv : β → α) : MedGraph β where
+  nodes := g.nodes.map f
+  edges := g.edges.map (fun e => { src := f e.src, dst := f e.dst, kind := e.kind, cf := e.cf })
+  kind  := g.kind ∘ fInv
+  scale := g.scale ∘ fInv
+  scope := g.scope ∘ fInv
 
 def canObserve (caller nodeScope : Scope) : Bool :=
   nodeScope == .all || nodeScope == caller
 
--- Progressive-disclosure token cost (arXiv:2604.27820v1, §4.5 & App. B)
+-- Enforced domain-invariance: bijective clinical relabeling preserves kinds, scales & visibility
+theorem domain_relabel_invariant {α β : Type} (g : MedGraph α) (f : α → β) (fInv : β → α)
+    (h : ∀ x, fInv (f x) = x) (r : Scope) (x : α) :
+    (g.relabel f fInv).kind (f x) = g.kind x ∧
+    (g.relabel f fInv).scale (f x) = g.scale x ∧
+    canObserve r ((g.relabel f fInv).scope (f x)) = canObserve r (g.scope x) := by
+  simp [MedGraph.relabel, Function.comp, h]
+
 def indexCost (k : Nat) : Nat := 30 + 6 * k
 def queryCost (k denseMatched fullResolved : Nat) : Nat :=
   indexCost k + 15 * denseMatched + 180 * fullResolved
@@ -102,14 +123,14 @@ theorem crawl_beats_full_injection : queryCost 12 4 2 < 1800 := by decide
 
 ---
 
-## 3. Epistemic Certainty Calculus (`seed`)
+## 3. Domain-Neutral Epistemic Certainty Calculus (`seed`)
 
 | Clinical Prose Signal | Bound `cf` | Representation |
 |---|---|---|
-| Confirmed present | `+1.00` | Definite value |
-| Confirmed absent (`"denies"`, `"no"`, `"ruled out"`) | `-1.00` | Definite negation |
-| Hedged (`"possible"`, `"?"`, `"cannot exclude"`) | `(+0.20, +0.70]` | Attenuated value; never promoted to `+1.00` |
-| Unmentioned or pending assay | `0.00` | `"unknown"`; eligible for `:resolves` |
+| Confirmed present / measured | `+1.00` | Definite observation across `nominal`, `ordinal`, `quantitative`, or `temporal` scale |
+| Confirmed absent (`"denies"`, `"no"`, `"ruled out"`) | `-1.00` | Definite disconfirmation |
+| Hedged (`"possible"`, `"?"`, `"cannot exclude"`) | `(+0.20, +0.70]` | Attenuated certainty; never promoted to `+1.00` |
+| Unmentioned or pending assay / imaging | `0.00` | `"unknown"`; eligible for `:resolves` inquiry |
 
 Bipolar evidence combination partitions positive and negative rule contributions before normalization, making aggregation commutative and associative across arbitrary crawl orders while flagging `+1.00` vs. `-1.00` contradictions as `.conflict`:
 
@@ -161,7 +182,7 @@ def falseP : Cf → Bool
   | .val q    => Q.lt q tauNeg
   | .conflict => false
 
-def evalAtom [BEq α] (κ : Card) (dom : List α) (μ : α → Q) (pred : α → Bool) : Cf :=
+def evalAtom {α : Type} (κ : Card) (dom : List α) (μ : α → Q) (pred : α → Bool) : Cf :=
   let m := (dom.filter pred).filterMap (fun v => let c := μ v; if c == Q.zero then none else some c)
   let x := match κ with
     | .multi  => []
@@ -174,27 +195,32 @@ def fireRule (premiseCf : Cf) (weight : Q) : Option Q :=
   | .val p    => if Q.lt tauPos p then some (Q.mul p weight) else none
   | .conflict => none
 
-theorem pseudomonas_r052_r075 :
+theorem synergy_40_60 :
     cfCombine [Q.ofCenti 40, Q.ofCenti 60] = .val (Q.ofCenti 76) := by decide
 
 theorem bipolar_order_independent :
     cfCombine [Q.ofCenti 40, Q.ofCenti 60, Q.ofCenti (-20)] =
     cfCombine [Q.ofCenti (-20), Q.ofCenti 60, Q.ofCenti 40] := by decide
 
+theorem bipolar_ruleout_overturns_prior :
+    cfCombine [Q.ofCenti 50, Q.ofCenti 60] = .val (Q.ofCenti 80) ∧
+    falseP (cfCombine [Q.ofCenti 50, Q.ofCenti 60, Q.ofCenti (-98)]) = true := by decide
+
 theorem hard_conflict_detected :
     cfCombine [Q.one, Q.neg Q.one] = .conflict := by decide
 
-theorem single_valued_exclusion_prunes_gram_pos :
-    let dom := ["gram_neg_rod", "gram_pos_coccus", "other"]
-    let μ   := fun v => if v == "gram_neg_rod" then Q.one else Q.zero
-    falseP (evalAtom .single dom μ (· == "gram_pos_coccus")) = true := by decide
+theorem single_vs_multi_modality :
+    let dom : List (Fin 3) := [0, 1, 2]
+    let μ   : Fin 3 → Q    := fun v => if v == 0 then Q.one else Q.zero
+    falseP (evalAtom .single dom μ (· == 1)) = true ∧
+    evalAtom .multi dom μ (· == 1) = .val Q.zero := by decide
 ```
 
 ---
 
 ## 4. `.med` Graph-Container Grammar (`~EBNF`)
 
-`.med` preserves full OpenGigantic `.og` block compatibility while allowing single-line `::dense` summaries, direct node-level edge lines, and native CommonMark fenced codeblocks (`tla`, `lean`, `js`). Every `::index` row bijects 1-to-1 with a `::node` on `(id, type, scope, cf)`.
+`.med` preserves full OpenGigantic `.og` compatibility while supporting single-line `::dense` summaries, inline edge declarations, and native CommonMark fenced codeblocks (`tla`, `lean`, `mermaid`, `js`). Reserved grammar terminals are strictly epistemic and structural; specialty-specific grammar extensions are prohibited. Every `::index` row bijects 1-to-1 with a `::node` on `(id, type, scope, cf)`.
 
 ```ebnf
 med_file      = markdown_raw
@@ -214,14 +240,16 @@ node_block    = "::node" , [ WS ] , "[" , attr , { WS , attr } , "]" , NL ,
                 { edge_decl | edges_block | fenced_code | colon_block } ,
                 "::end" , NL ;
 
-attr          = id , "=" , ( id | STRING | signed_cf | "true" | "false" ) ;
+attr          = "scale=" , clinical_scale
+              | id , "=" , ( id | STRING | NUMBER | signed_cf | "true" | "false" ) ;
+clinical_scale = "nominal" | "ordinal" | "quantitative" | "temporal" ;
 node_type     = "context" | "finding" | "hypothesis" | "rule" | "action" | "invariant" | "meta" ;
 scope         = "all" | "clinician" | "orchestrator" | "worker" | "patient" | id ;
 signed_cf     = [ "+" | "-" ] , ( "1.00" | "1.0" | "0." , DIGIT , { DIGIT } | "0" ) ;
 
 dense_spec    = "::dense" , WS , TEXT_LINE , NL
               | "::dense" , NL , TEXT_LINE , NL , "::end" , NL ;
-fenced_code   = "```" , ( "tla" | "lean" | "js" | id ) , NL , VERBATIM , "```" , NL ;
+fenced_code   = "```" , ( "tla" | "lean" | "mermaid" | "js" | id ) , NL , VERBATIM , "```" , NL ;
 colon_block   = "::" , ( "full" | "warning" | "reference" | "steps" | "list" | "table"
                        | "note" | "example" | "summary" | "assertion" | "changelog" | "code" ) ,
                 [ [ WS ] , "[" , attr , { WS , attr } , "]" ] , NL , VERBATIM , "::end" , NL ;
@@ -237,24 +265,24 @@ id            = ( LETTER | "_" ) , { LETTER | DIGIT | "_" | "-" } ;
 
 ---
 
-## 5. Workup Crawl & Lowering Logic (`tla`)
+## 5. Workup Crawl, `/statechart` Verification, & `.mermaid` Relaxation (`[1]`)
 
-### 5.1 Crawl & Backward-Chaining Protocol (`agent.workup { CRAWLS [2] }`)
+### 5.1 Domain-Neutral Crawl & Backward-Chaining Logic (`agent.workup { CRAWLS [2] }`)
 
-`agent.workup` queries external graphs exclusively via `search_index(uri, role)` and `resolve_context(uri, ids, depth, role, session)`, enforcing non-skippable `::warning` reads and single-step `reject-premise` pruning before assembling the pending diagnostic frontier:
+`agent.workup` queries external reference graphs exclusively via `search_index(uri, role)` and `resolve_context(uri, ids, depth, role, session)`, enforcing non-skippable `::warning` reads, `O(1)` `reject-premise` pruning, and automatic discovery of unknown diagnostic frontier nodes:
 
 ```tla
 ---- MODULE AgentWorkup ----
 EXTENDS FiniteSets
 
-Nodes           == {"find_gram", "find_allergy", "rule_052", "rule_071", "hyp_pseudo"}
-ScopedVisible   == {"find_gram", "find_allergy", "rule_052", "rule_071", "hyp_pseudo"}
-HasWarning      == {"find_allergy"}
-Requires(n)     == CASE n = "rule_052" -> {"find_gram"}
-                     [] n = "rule_071" -> {"find_gram"}
+Nodes           == {"f_known", "f_pending", "r_active", "r_pruned", "h_goal"}
+ScopedVisible   == {"f_known", "f_pending", "r_active", "r_pruned", "h_goal"}
+HasWarning      == {"f_pending"}
+Requires(n)     == CASE n = "r_active" -> {"f_known", "f_pending"}
+                     [] n = "r_pruned" -> {"f_known"}
                      [] OTHER          -> {}
-PremiseFalse(r) == r = "rule_071"
-UnknownFindings == {"find_allergy"}
+PremiseFalse(r) == r = "r_pruned"
+UnknownFindings == {"f_pending"}
 
 VARIABLES phase, resolved, warningsRead, pruned, frontier
 vars == <<phase, resolved, warningsRead, pruned, frontier>>
@@ -265,7 +293,7 @@ Init ==
 
 ResolveContext ==
   /\ phase = "index"
-  /\ LET sel  == {"rule_052", "rule_071", "find_allergy"} \cap ScopedVisible
+  /\ LET sel  == {"r_active", "r_pruned"} \cap ScopedVisible
          full == sel \cup UNION {Requires(n) : n \in sel}
      IN /\ resolved' = full
         /\ warningsRead' = full \cap HasWarning
@@ -284,23 +312,20 @@ Next == ResolveContext \/ BackwardChain \/ Done
 Spec == Init /\ [][Next]_vars
 
 WarningsNeverSkipped == (resolved \cap HasWarning) \subseteq warningsRead
-FalseRulesPruned     == (phase = "done") => ("rule_071" \in pruned /\ "rule_052" \notin pruned)
+FalseRulesPruned     == (phase = "done") => ("r_pruned" \in pruned /\ "r_active" \notin pruned)
+FrontierDiscovered   == (phase = "done") => ("f_pending" \in frontier)
 ====
 ```
 
-### 5.2 Deterministic Statechart Lowering (`{ RENDERS [1] }`)
+### 5.2 Strict `/statechart` Lowering (`tla` + `js` -> SANY + TLC)
 
-Extracting the `tla` fences from active `.med` nodes and prepending the integer centi-CF preamble (`round(100 * cf)` in `-100..100`, scaling `cf-thresholds: [+0.20, -0.80]` to `TauPos == 20`, `TauNeg == -80`, with `-999` for `.conflict`) yields `(SPEC.tla, SPEC.cfg, view.mjs)` directly for Cursor's `statechart` CLI:
+When exhaustive finite-state verification is selected, extracting `tla` fences from `.med` nodes and prepending the integer centi-CF preamble (`round(100 * cf)` in `-100..100`, scaling `cf-thresholds: [+0.20, -0.80]` to `TauPos == 20`, `TauNeg == -80`, with `-999` for `.conflict`) produces `(SPEC.tla, SPEC.cfg, view.mjs)` for Cursor's `/statechart` harness (`statechart SPEC.tla --config SPEC.cfg --view view.mjs --out SPEC-chart`):
 
-```sh
-statechart SPEC.tla --config SPEC.cfg --view view.mjs --out SPEC-chart
-```
-
-- **`context` / unresolved `finding` with `var=<v> init=<v0>`:** Declares `VARIABLE <v>`, `Init` conjunct `<v> = "<v0>"`, and `TypeOK` conjunct `<v> \in <Pascal(v)>Dom`.
-- **`rule` & `hypothesis` `tla` fences:** Pure state-level operators evaluated over `vars` via `CfFire`, `CfPos`, `CfNeg`, and `CfBipolar`.
-- **`action` & `Done` `tla` fences:** Disjuncts of `Next`. If no `context` defines `Done`, `SPEC.cfg` sets `CHECK_DEADLOCK FALSE`.
-- **`invariant` `tla` fences:** `kind=safety` registers under `INVARIANT` (with `TypeOK` and `NoHardConflict`); `kind=liveness` registers under `PROPERTY`.
-- **`__view` `js` fence:** Written verbatim to `view.mjs` (`title`, `colors`, `state`, `group`, `step`).
+- **`context` / unresolved `finding` with `var=<v> init=<v0>`:** Emits `VARIABLE <v>`, `Init` `<v> = "<v0>"`, and `TypeOK` `<v> \in <Pascal(v)>Dom`.
+- **`rule` & `hypothesis` `tla` fences:** State-level operators evaluated over `vars` via `CfFire`, `CfPos`, `CfNeg`, and `CfBipolar`.
+- **`action` & `Done` `tla` fences:** Disjuncts of `Next` (`CHECK_DEADLOCK FALSE` if no `Done` is declared).
+- **`invariant` `tla` fences:** `kind=safety` -> `INVARIANT` (with `TypeOK` and `NoHardConflict`); `kind=liveness` -> `PROPERTY`.
+- **`__view` `js` fence:** Emitted as `view.mjs` (`title`, `colors`, `state`, `group`, `step`), marking violations with `breaks` (`#ffecee`/`#e72e3b`), coarsened ambiguities with `mayBreak` (`#fff3e6`/`#e8730c`), counterexamples with `bugPath` (`#1680f3`), and liveness lassos with `repeats` (`#9b35d6`).
 
 ```tla
 ---- MODULE MedCentiCfPreamble ----
@@ -329,18 +354,55 @@ EvalEq(v, target) == IF v = target THEN 100 ELSE IF v = "unknown" THEN 0 ELSE -1
 ====
 ```
 
-| Statechart Mark | CSS / Mermaid Style | Verification Meaning |
+### 5.3 Full Relaxation of `/statechart` to `.mermaid` Frameworks
+
+`/statechart` (`stateDiagram-v2` via TLC) may be **fully relaxed** to any native `.mermaid` framework (rendered directly by CommonMark viewers or `pele@1.9.0` without `view.mjs` or Java/TLC) whenever continuous physiology, deductive rule graphs, multi-team handoffs, or longitudinal timelines are more interpretable than a discrete state product:
+
+| `.mermaid` Framework | Clinical Workup Topology | `.med` Graph Projection (`G -> .mermaid`) |
 |---|---|---|
-| `breaks` | `fill:#ffecee,stroke:#e72e3b` | Every model state in this chart label violates an `INVARIANT` |
-| `mayBreak` | `fill:#fff3e6,stroke:#e8730c` | Coarsened label merges safe & unsafe states; split `state(v)` |
-| `bugPath` | `stroke:#1680f3` | Shortest TLC counterexample path from `Init` to violation |
-| `repeats` | `stroke:#9b35d6,dasharray:6 3` | Stuttering or cyclic lasso violating a temporal `PROPERTY` |
+| `stateDiagram-v2` *(strict or relaxed)* | Protocol phases, parallel organ/workup tracks, Harel sub-states | `context`/`finding` states, `action` transitions, `breaks`/`bugPath` classes |
+| `flowchart` (`LR` / `TD`) | Acute triage algorithms, ACLS/sepsis bundles, deductive rule DAGs | `finding` -> `rule` (`cf`) -> `hypothesis` -> gated `action`; `breaks` red-flag nodes |
+| `sequenceDiagram` | Multi-service consults, stat imaging/lab turnaround, escalations | `context`/`scope` lifelines, `:resolves` & `:transitions` messages, `critical` blocks |
+| `timeline` / `gantt` | Longitudinal disease course, serial biomarkers, washout/dosing windows | Time-indexed `finding` observations & scheduled `action` intervals (`crit` gates) |
+| `xychart-beta` / `sankey-beta` | Quantitative lab/vital trajectories (`scale=quantitative`), probability flow | Numeric `finding` series vs. thresholds; `:supports` / `:contradicts` weight flows |
+| `erDiagram` / `requirementDiagram` | Multi-instance `context` schemas & safety `invariant` traceability | `:contains` entity cardinalities; `invariant` (`risk: high`) `<- verifies -` `action` |
+| `quadrantChart` / `mindmap` | Pretest-probability vs. acuity prioritization; syndrome differentials | `hypothesis` `(cf, acuity)` coordinates; `:contains` problem-list trees |
+
+Every relaxed `.mermaid` projection MUST satisfy `validRelaxation`: `safetyBreak` (`::warning` / violated `invariant`) is never erased, and `affirmed` (`+cf`), `negated` (`-cf`), and `unknown` (`0.00`) remain distinct:
+
+```lean
+inductive RenderFramework
+  | statechartTla      -- Strict SANY + TLC verified stateDiagram-v2
+  | stateDiagram       -- Relaxed Harel stateDiagram-v2 (no TLC / view.mjs required)
+  | flowchart          -- Deductive rule DAGs & clinical triage algorithms
+  | sequenceDiagram    -- Multi-service consults, handoffs & lab/imaging escalations
+  | timelineOrGantt    -- Serial biomarker kinetics, washouts & longitudinal care
+  | xyOrSankey         -- Quantitative biomarker trends & weighted evidence flows
+  | erOrRequirement    -- Context entity schemas & safety invariant traceability
+  | quadrantOrMindmap  -- Pretest-probability vs. acuity & differential trees
+  deriving DecidableEq, Repr
+
+inductive EpistemicClass | affirmed | negated | unknown | safetyBreak
+  deriving DecidableEq, Repr
+
+def validRelaxation (_target : RenderFramework) (proj : EpistemicClass → EpistemicClass) : Bool :=
+  proj .safetyBreak == .safetyBreak &&
+  proj .affirmed != proj .negated &&
+  proj .affirmed != proj .unknown &&
+  proj .negated  != proj .unknown &&
+  proj .affirmed != .safetyBreak &&
+  proj .negated  != .safetyBreak &&
+  proj .unknown  != .safetyBreak
+
+theorem identity_relaxation_sound (fw : RenderFramework) :
+    validRelaxation fw id = true := by cases fw <;> rfl
+```
 
 ---
 
-## 6. Canonical End-to-End Instantiation (`SYNTH-1937-042`)
+## 6. Cross-Domain Instantiations
 
-### 6.1 `INPUT`: Natural-Language Clinical Case
+### 6.1 Case I (Infectious Disease Seed -> Strict `/statechart` TLC Mode): `SYNTH-1937-042`
 
 ```text
 Case SYNTH-1937-042 (1937-05-14):
@@ -350,8 +412,6 @@ Gram-negative rods; culture aerobicity and genus identity remain pending.
 History significant for neutropenia (immunocompromised host). Beta-lactam allergy status is
 undocumented (patient obtunded; next-of-kin en route). No antimicrobials started yet.
 ```
-
-### 6.2 `OUTPUT`: `.med` Graph-Logic Specification (`synth-1937-042.med`)
 
 ````markdown
 ::meta
@@ -367,6 +427,7 @@ checksum: sha256:7d4e9b1c2a0f8831
 ::schema
 node-types: [context, finding, hypothesis, rule, action, invariant, meta]
 edge-types: [contains, requires, supports, contradicts, resolves, transitions, supersedes]
+scales: [nominal, ordinal, quantitative, temporal]
 scope-levels: [all, clinician, orchestrator, worker, patient]
 cf-thresholds: [+0.20, -0.80]
 ::end
@@ -421,28 +482,28 @@ Done ==
 ->[:contains] find-gram-rod, find-aerobicity, hyp-pseudomonas, hyp-enterobact, hyp-bacteroides
 ::end
 
-::node [id=find-burn type=finding cf=+1.00 scope=all src="L1: serious thermal burn injuries"]
+::node [id=find-burn type=finding cf=+1.00 scope=all scale=ordinal src="L1: serious thermal burn injuries"]
 ::dense burn=serious|cf=+1.00|src=L1
 ```tla
 Burn == "serious"
 ```
 ::end
 
-::node [id=find-compromised type=finding cf=+1.00 scope=all src="L4: neutropenia (immunocompromised host)"]
+::node [id=find-compromised type=finding cf=+1.00 scope=all scale=nominal src="L4: neutropenia (immunocompromised host)"]
 ::dense compromised=yes|neutropenia|cf=+1.00|src=L4
 ```tla
 Compromised == "yes"
 ```
 ::end
 
-::node [id=find-gram-rod type=finding cf=+1.00 scope=all src="L2-L3: blood culture Gram-negative rods"]
+::node [id=find-gram-rod type=finding cf=+1.00 scope=all scale=nominal src="L2-L3: blood culture Gram-negative rods"]
 ::dense site=blood|gram=neg|morphology=rod|cf=+1.00|src=L2-L3
 ```tla
 GramStain == "gram_neg_rod"
 ```
 ::end
 
-::node [id=find-aerobicity type=finding cf=0.00 scope=all var=aerobicity init=unknown]
+::node [id=find-aerobicity type=finding cf=0.00 scope=all scale=nominal var=aerobicity init=unknown]
 ::dense aerobicity=unknown|pending-subculture|discriminates-R107-R073
 ::full
 WHY: GramStain = gram_neg_rod (+1.00) is established; aerobicity discriminates
@@ -453,7 +514,7 @@ AerobicityDom == {"unknown", "aerobic", "anaerobic"}
 ```
 ::end
 
-::node [id=find-allergy type=finding cf=0.00 scope=all var=allergy init=unknown src="L4-L5: allergy undocumented"]
+::node [id=find-allergy type=finding cf=0.00 scope=all scale=nominal var=allergy init=unknown src="L4-L5: allergy undocumented"]
 ::dense allergy=unknown|obtunded-patient|blocks-blactam|src=L4-L5
 ::warning
 Beta-lactam allergy is UNVERIFIED (cf=0.00). Never treat undocumented allergy
@@ -612,7 +673,7 @@ InvAnaerobeCover ==
 ```
 ::end
 
-::node [id=__view type=meta cf=+1.00 scope=all]
+::node [id=__view type=meta cf=+1.00 scope=all render=statechart]
 ::dense statechart-view|3-regions|Allergy-Culture-Therapy|yellow-teal
 ```js
 export const title = "SYNTH-1937-042 Bacteremia Workup";
@@ -653,11 +714,7 @@ export const step = (a) => ({
 ::end
 ````
 
-### 6.3 `RENDERS [1]`: TLC-Verified Statecharts
-
-#### A. Guarded Workup (`exit 0`: 17 states, 28 steps -> 10 chart states, 8 arrows)
-
-`TypeOK`, `NoHardConflict`, `InvAllergyGate`, `InvPseudoCover`, `InvAnaerobeCover`, and `NoDeadlock` hold across every diagnostic ordering:
+#### TLC-Verified `/statechart` Outputs (`exit 0` Clean vs. `exit 1` Naive Argmax Narrowing)
 
 ```mermaid
 ---
@@ -708,9 +765,7 @@ stateDiagram-v2
   class s9 teal
 ```
 
-#### B. Counterexample Detection (`exit 1`: `InvPseudoCover` Breaks on Naive Argmax Narrowing)
-
-Adding `ActNaiveNarrow` (narrowing off anti-pseudomonal therapy once `CfHypEnterobact = 80 > CfHypPseudomonas = 76`) triggers `breaks` on `s9` and highlights the 4-step `bugPath`:
+Adding `ActNaiveNarrow` (dropping anti-pseudomonal therapy when `CfHypEnterobact = 80 > CfHypPseudomonas = 76`) fails `InvPseudoCover` (`exit 1`), marking `s9` with `breaks` and tracing the 4-step `bugPath`:
 
 ```mermaid
 ---
@@ -778,27 +833,284 @@ stateDiagram-v2
   class s10 teal
 ```
 
+---
+
+### 6.2 Case II (Cardiovascular / Emergency Triage -> Relaxed `.mermaid` Mode): `SYNTH-1937-108`
+
+Demonstrates pan-clinical generality across quantitative biomarkers, hemodynamic differentials, bipolar rule-out (`+0.80` pre-CTA overturned to `-0.90` on negative CTA), and direct relaxation of `/statechart` to `flowchart` + `sequenceDiagram` without `view.mjs` or TLC boilerplate.
+
 ```text
-InvPseudoCover breaks — shortest path (4 steps):
-0. Allergy Allergy unverified, Culture Aerobicity pending, Therapy No antimicrobials
-1. culture grows aerobe: Allergy Allergy unverified, Culture Aerobe (Enterobact +0.80), Therapy No antimicrobials
-2. confirm no allergy: Allergy No beta-lactam allergy, Culture Aerobe (Enterobact +0.80), Therapy No antimicrobials
-3. start anti-pseudomonal beta-lactam: Allergy No beta-lactam allergy, Culture Aerobe (Enterobact +0.80), Therapy Anti-pseudomonal beta-lactam
-4. narrow off anti-pseudomonal Rx: Allergy No beta-lactam allergy, Culture Aerobe (Enterobact +0.80), Therapy Narrow non-pseudomonal Rx
+Case SYNTH-1937-108 (1937-09-03):
+64-year-old female presents to ED with abrupt tearing interscapular chest pain (onset 45 min ago),
+right-left brachial systolic BP differential 28 mmHg (R 176/98, L 148/86), lateral ECG ST-depression,
+and 0h hs-cTnI 68 ng/L (ULN 14 ng/L). CTA chest/abdomen pending; no anticoagulants given.
+```
+
+````markdown
+::meta
+title: SYNTH-1937-108 Acute Chest Pain & Aortic Dissection Workup
+version: 1.0.0
+updated: 1937-09-03
+case-id: SYNTH-1937-108
+domain: cardiology|vascular-surgery|emergency-medicine
+scope: all
+checksum: sha256:91c4e02b6f3d55a8
+::end
+
+::schema
+node-types: [context, finding, hypothesis, rule, action, invariant, meta]
+edge-types: [contains, requires, supports, contradicts, resolves, transitions, supersedes]
+scales: [nominal, ordinal, quantitative, temporal]
+scope-levels: [all, clinician, orchestrator, worker, patient]
+cf-thresholds: [+0.20, -0.80]
+::end
+
+::index
+# id | type | scope | cf | keywords
+ctx-encounter | context | all | +1.00 | ed, chest-pain, acute-aortic-syndrome, acs
+find-tearing-pain | finding | all | +1.00 | tearing, interscapular, onset-45m, temporal
+find-bp-delta | finding | all | +1.00 | brachial-bp-diff, 28mmhg, quantitative, pulse-deficit
+find-ischemia-lab | finding | all | +1.00 | st-depression, hs-ctni-68, quantitative, troponin
+find-cta-aorta | finding | all | 0.00 | cta-aorta, intimal-flap, pending, imaging
+rule-acs-trop | rule | clinician | +0.75 | nstemi, st-depression, troponin-elevation
+rule-tad-pain | rule | clinician | +0.50 | dissection, abrupt-tearing-pain, thoracic
+rule-tad-bp | rule | clinician | +0.60 | dissection, systolic-bp-delta-ge-20mmhg
+rule-tad-cta-pos | rule | clinician | +1.00 | cta-intimal-flap, definitive-type-a-dissection
+rule-tad-cta-neg | rule | clinician | -0.98 | cta-normal, high-sensitivity-ruleout, bipolar
+hyp-acs | hypothesis | clinician | +0.75 | acs, nstemi, ostial-malperfusion-vs-plaque
+hyp-dissection | hypothesis | clinician | +0.80 | stanford-type-a, aortic-dissection, pre-cta
+act-esmolol-bp | action | clinician | +1.00 | anti-impulse, esmolol, hr-le-60, sbp-100-120
+act-stat-cta | action | all | +1.00 | gated-cta-aorta, resolves-intimal-flap
+act-ct-surgery | action | clinician | +1.00 | emergent-graft-repair, type-a-dissection
+act-acs-heparin | action | clinician | +1.00 | heparin, cath-lab, requires-dissection-ruled-out
+inv-no-premature-anticoag | invariant | all | +1.00 | safety, heparin-contraindicated-in-dissection
+__view | meta | all | +1.00 | mermaid-relaxed, flowchart, sequenceDiagram
+::end
+
+::node [id=ctx-encounter type=context cf=+1.00 scope=all entity=ENCOUNTER var=plan init=triage goals="hyp-dissection,hyp-acs"]
+::dense SYNTH-1937-108|female|64y|chest-pain-45m|cardiology-vascular-ed
+->[:contains] find-tearing-pain, find-bp-delta, find-ischemia-lab, find-cta-aorta, hyp-dissection, hyp-acs
+```tla
+PlanDom == {"triage", "anti_impulse", "ct_surgery", "acs_heparin"}
+Done == plan \in {"ct_surgery", "acs_heparin"} /\ UNCHANGED vars
+```
+::end
+
+::node [id=find-tearing-pain type=finding cf=+1.00 scope=all scale=temporal src="L1: abrupt tearing interscapular chest pain (onset 45 min ago)"]
+::dense pain=tearing-interscapular|onset_min=45|cf=+1.00
+```tla
+TearingPain == "yes"
+```
+::end
+
+::node [id=find-bp-delta type=finding cf=+1.00 scope=all scale=quantitative unit="mmHg" value=28 src="L2: brachial systolic BP differential 28 mmHg"]
+::dense sbp_delta_mmhg=28|r=176|l=148|threshold>=20|cf=+1.00
+```tla
+BpDeltaMmHg == 28
+```
+::end
+
+::node [id=find-ischemia-lab type=finding cf=+1.00 scope=all scale=quantitative unit="ng/L" value=68 src="L2-L3: lateral ECG ST-depression, 0h hs-cTnI 68 ng/L"]
+::dense ecg=lateral-st-dep|hs_ctni_ng_l=68|uln=14|cf=+1.00
+```tla
+HsTroponinNgL == 68
+```
+::end
+
+::node [id=find-cta-aorta type=finding cf=0.00 scope=all scale=nominal var=cta init=unknown]
+::dense cta_aorta=unknown|pending-gated-cta|gates-anticoagulation
+::warning
+CTA aorta is PENDING (cf=0.00). ST-depression + troponin elevation may reflect
+coronary ostial malperfusion from Type A dissection; DO NOT administer heparin
+or P2Y12 loading until CTA excludes aortic dissection.
+::end
+```tla
+CtaDom == {"unknown", "intimal_flap", "normal_aorta"}
+```
+::end
+
+::node [id=rule-acs-trop type=rule cf=+0.75 scope=clinician]
+::dense st-dep+hs-ctni-68->hyp-acs(+0.75)
+->[:requires] find-ischemia-lab
+->[:supports cf=+0.75] hyp-acs
+```tla
+RuleAcsTrop == CfFire(IF HsTroponinNgL > 14 THEN 100 ELSE -100, 75)
+```
+::end
+
+::node [id=rule-tad-pain type=rule cf=+0.50 scope=clinician]
+::dense abrupt-tearing-pain->hyp-dissection(+0.50)
+->[:requires] find-tearing-pain
+->[:supports cf=+0.50] hyp-dissection
+```tla
+RuleTadPain == CfFire(EvalEq(TearingPain, "yes"), 50)
+```
+::end
+
+::node [id=rule-tad-bp type=rule cf=+0.60 scope=clinician]
+::dense sbp-delta>=20mmhg->hyp-dissection(+0.60)
+->[:requires] find-bp-delta
+->[:supports cf=+0.60] hyp-dissection
+```tla
+RuleTadBp == CfFire(IF BpDeltaMmHg >= 20 THEN 100 ELSE -100, 60)
+```
+::end
+
+::node [id=rule-tad-cta-pos type=rule cf=+1.00 scope=clinician]
+::dense cta=intimal_flap->hyp-dissection(+1.00)
+->[:requires] find-cta-aorta
+->[:supports cf=+1.00] hyp-dissection
+```tla
+RuleTadCtaPos == CfFire(EvalEq(cta, "intimal_flap"), 100)
+```
+::end
+
+::node [id=rule-tad-cta-neg type=rule cf=-0.98 scope=clinician]
+::dense cta=normal_aorta->hyp-dissection(-0.98)|overturns-+0.80-to--0.90
+->[:requires] find-cta-aorta
+->[:contradicts cf=-0.98] hyp-dissection
+```tla
+RuleTadCtaNeg == CfFire(EvalEq(cta, "normal_aorta"), -98)
+```
+::end
+
+::node [id=hyp-acs type=hypothesis cf=+0.75 scope=clinician]
+::dense acs-nstemi|cf=+0.75|co-active-with-dissection
+```tla
+CfHypAcs == CfBipolar(RuleAcsTrop, 0)
+```
+::end
+
+::node [id=hyp-dissection type=hypothesis cf=+0.80 scope=clinician]
+::dense type-a-dissection|cf=+0.80|0.50(+)0.60|+1.00-if-flap|-0.90-if-normal
+```tla
+CfHypDissection == CfBipolar(CfPos(CfPos(RuleTadPain, RuleTadBp), RuleTadCtaPos), RuleTadCtaNeg)
+```
+::end
+
+::node [id=act-esmolol-bp type=action cf=+1.00 scope=clinician]
+::dense intervene|iv-esmolol-anti-impulse|target-hr<=60-sbp-100-120
+->[:requires] hyp-dissection
+->[:transitions] act-stat-cta
+```tla
+ActEsmololBp ==
+  /\ plan = "triage" /\ CfHypDissection > 20
+  /\ plan' = "anti_impulse" /\ UNCHANGED cta
+```
+::end
+
+::node [id=act-stat-cta type=action cf=+1.00 scope=all]
+::dense observe|ecg-gated-cta-aorta|intimal-flap-vs-normal-aorta
+->[:resolves] find-cta-aorta
+->[:transitions] act-ct-surgery, act-acs-heparin
+```tla
+ActStatCtaFlap ==
+  /\ plan = "anti_impulse" /\ cta = "unknown"
+  /\ cta' = "intimal_flap" /\ UNCHANGED plan
+ActStatCtaNormal ==
+  /\ plan = "anti_impulse" /\ cta = "unknown"
+  /\ cta' = "normal_aorta" /\ UNCHANGED plan
+```
+::end
+
+::node [id=act-ct-surgery type=action cf=+1.00 scope=clinician]
+::dense intervene|emergent-open-aortic-repair|when-cta=intimal_flap
+->[:requires] find-cta-aorta, hyp-dissection
+```tla
+ActCtSurgery ==
+  /\ plan = "anti_impulse" /\ CfHypDissection = 100
+  /\ plan' = "ct_surgery" /\ UNCHANGED cta
+```
+::end
+
+::node [id=act-acs-heparin type=action cf=+1.00 scope=clinician]
+::dense intervene|heparin+coronary-angiography|only-when-cf(dissection)<-0.80
+->[:requires] find-cta-aorta, hyp-acs, hyp-dissection
+```tla
+ActAcsHeparin ==
+  /\ plan = "anti_impulse" /\ CfHypAcs > 20 /\ CfHypDissection < -80
+  /\ plan' = "acs_heparin" /\ UNCHANGED cta
+```
+::end
+
+::node [id=inv-no-premature-anticoag type=invariant cf=+1.00 scope=all kind=safety]
+::dense safety|forbid-heparin-while-cf(hyp-dissection)>=-0.80
+->[:requires] hyp-dissection, find-cta-aorta
+```tla
+InvNoPrematureAnticoag == (plan = "acs_heparin") => (CfHypDissection < -80)
+```
+::end
+
+::node [id=__view type=meta cf=+1.00 scope=all render=mermaid]
+::dense relaxed-mermaid|flowchart-epistemic-gate+sequence-escalation
+```mermaid
+flowchart LR
+  P["find-tearing-pain (45m, +1.00)"] -->|"+0.50"| H_TAD["hyp-dissection (CF +0.80)"]
+  B["find-bp-delta (28 mmHg, +1.00)"] -->|"+0.60"| H_TAD
+  I["find-ischemia-lab (cTnI 68 ng/L, +1.00)"] -->|"+0.75"| H_ACS["hyp-acs (CF +0.75)"]
+  H_TAD --> A_BP["act-esmolol-bp (HR <= 60, SBP 100-120)"]
+  A_BP --> CTA{"find-cta-aorta (cf = 0.00 ?)"}
+  H_ACS -.->|"BLOCKED: InvNoPrematureAnticoag"| BAD["Premature Heparin (breaks)"]
+  CTA -->|"intimal_flap (+1.00 => CF +1.00)"| OR["act-ct-surgery (Type A Repair)"]
+  CTA -->|"normal_aorta (-0.98 => CF -0.90)"| CATH["act-acs-heparin (Heparin + Cath)"]
+  classDef breaks fill:#ffecee,stroke:#e72e3b,stroke-width:2.5px,color:#cd2834
+  classDef pending fill:#fff8e1,stroke:#d97706,stroke-width:2px
+  class BAD breaks
+  class CTA pending
+```
+::end
+````
+
+#### Rendered Relaxed `.mermaid` Views (`flowchart` Epistemic Gate & `sequenceDiagram` Escalation)
+
+```mermaid
+flowchart LR
+  P["find-tearing-pain (45m, +1.00)"] -->|"+0.50"| H_TAD["hyp-dissection (CF +0.80)"]
+  B["find-bp-delta (28 mmHg, +1.00)"] -->|"+0.60"| H_TAD
+  I["find-ischemia-lab (cTnI 68 ng/L, +1.00)"] -->|"+0.75"| H_ACS["hyp-acs (CF +0.75)"]
+  H_TAD --> A_BP["act-esmolol-bp (HR <= 60, SBP 100-120)"]
+  A_BP --> CTA{"find-cta-aorta (cf = 0.00 ?)"}
+  H_ACS -.->|"BLOCKED: InvNoPrematureAnticoag"| BAD["Premature Heparin (breaks)"]
+  CTA -->|"intimal_flap (+1.00 => CF +1.00)"| OR["act-ct-surgery (Type A Repair)"]
+  CTA -->|"normal_aorta (-0.98 => CF -0.90)"| CATH["act-acs-heparin (Heparin + Cath)"]
+  classDef breaks fill:#ffecee,stroke:#e72e3b,stroke-width:2.5px,color:#cd2834
+  classDef pending fill:#fff8e1,stroke:#d97706,stroke-width:2px
+  class BAD breaks
+  class CTA pending
+```
+
+```mermaid
+sequenceDiagram
+  participant ED as ED Clinician (ctx-encounter)
+  participant Rad as CT Angiography (find-cta-aorta)
+  participant CTS as Cardiothoracic Surgery
+  participant Cath as Interventional Cardiology
+  Note over ED: hyp-dissection +0.80 & hyp-acs +0.75<br/>InvNoPrematureAnticoag holds Heparin
+  ED->>ED: act-esmolol-bp (IV beta-blockade)
+  ED->>Rad: act-stat-cta (:resolves find-cta-aorta)
+  alt Intimal flap identified (rule-tad-cta-pos +1.00)
+    Rad-->>ED: hyp-dissection = +1.00 (confirmed)
+    ED->>CTS: act-ct-surgery (Emergent operative repair)
+  else Normal thoracic aorta (rule-tad-cta-neg -0.98)
+    Rad-->>ED: hyp-dissection = -0.90 (< -0.80, ruled out)
+    ED->>Cath: act-acs-heparin (Unfractionated heparin + angiography)
+  end
 ```
 
 ---
 
-## 7. Cross-Domain Generality
+## 7. Pan-Clinical Domain & `.mermaid` Modality Matrix
 
-| Domain | `context` DAG | `finding` (`cf`) | `hypothesis` (`CfBipolar`) | `action` (`Next`) | `invariant` (`INVARIANT`) |
+| Clinical Specialty | `context` DAG | `finding` (`scale`) | `hypothesis` (`CfBipolar`) | `invariant` Gate | Preferred `[1]` Render Mode |
 |---|---|---|---|---|---|
-| **Infectious Disease** | `PATIENT -> CULTURE -> ORGANISM` | Stain, site, host, allergy | Pathogen identity (`+0.76`) | Subculture, empiric/targeted Rx | `InvAllergyGate`, `InvPseudoCover` |
-| **Chest Pain Triage** | `PATIENT -> ENCOUNTER -> ISCHEMIA` | ECG ST-shift, 0h/2h troponin | NSTEMI, PE, dissection | Serial troponin, CTA, heparin | `NoAnticoagBeforeDissectionExcluded` |
-| **Molecular Oncology** | `PATIENT -> TUMOR -> VARIANT` | VAF, MSI/TMB, ECOG | Driver vs. resistance clone | Liquid biopsy, targeted TKI | `CompanionDxConfirmed`, `QTcGate` |
-| **Trial Eligibility** | `TRIAL -> CANDIDATE -> CRITERION` | Labs, washout days, consent | Inclusion / exclusion fit | Washout wait, screening assay | `ZeroExclusions`, `SignedConsent` |
-| **Pharmacovigilance** | `CASE -> EXPOSURE -> EVENT` | Dechallenge, rechallenge | Drug causality | Hold culprit drug, antidote | `NoRechallengeAfterAnaphylaxis` |
-| **Biologic Cleanroom** | `CONSTRUCT -> ASSAY -> CLONE` | Off-target hits, endotoxin | Sequence developability | Orthogonal screen, kill-gate | `EndotoxinBelowReleaseLimit` |
+| **Infectious Disease** | `PATIENT -> CULTURE -> ORGANISM` | Stain, host, allergy (`nominal`/`ordinal`) | Pathogen identity (`+0.76`) | `InvAllergyGate`, `InvPseudoCover` | Strict `/statechart` (`stateDiagram-v2`) |
+| **Cardiology / Vascular ED** | `PATIENT -> ENCOUNTER -> VESSEL` | BP delta, hs-cTnI, onset (`quantitative`/`temporal`) | Type A dissection vs. NSTEMI | `InvNoPrematureAnticoag` | Relaxed `flowchart` + `sequenceDiagram` |
+| **Molecular Oncology** | `PATIENT -> TUMOR -> VARIANT` | VAF %, MSI/TMB, ECOG (`quantitative`/`ordinal`) | Driver vs. resistance clone | `CompanionDxConfirmed`, `QTcGate` | Relaxed `sankey-beta` / `gantt` cycles |
+| **Nephrology / ICU** | `PATIENT -> STAY -> ELECTROLYTE` | Serial Na+, Cr, Osm (`quantitative`/`temporal`) | Osmotic vs. hypovolemic AKI | `MaxSodiumCorrectionRate` (`<= 8 mEq/24h`) | Relaxed `xychart-beta` + `/statechart` |
+| **Psychiatry / Triage** | `PATIENT -> EPISODE -> RISK` | Validated screeners, collateral (`ordinal`/`nominal`) | Acute safety & organic mimics | `MedicalMimicClearedBeforeDisposition` | Relaxed `stateDiagram-v2` / `flowchart` |
+| **Surgery / Perioperative** | `PATIENT -> PROCEDURE -> COAG` | INR, platelet count, NPO hours (`quantitative`/`temporal`) | Operative readiness vs. bleed risk | `AnticoagWashoutVerified` | Relaxed `timeline` / `requirementDiagram` |
+| **Clinical Trials** | `TRIAL -> CANDIDATE -> CRITERION` | Washout days, organ labs, consent (`temporal`/`quantitative`) | Arm eligibility & stratum | `ZeroExclusions`, `SignedConsent` | Strict `/statechart` / `erDiagram` |
+| **Biologic Cleanroom** | `CONSTRUCT -> ASSAY -> CLONE` | Off-target hits, endotoxin (`quantitative`) | Sequence developability | `EndotoxinBelowReleaseLimit` | Strict `/statechart` / `quadrantChart` |
 
 ---
 
