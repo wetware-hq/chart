@@ -103,7 +103,7 @@ theorem cf_laws :
 ## 3. Grammar (`~EBNF`)
 
 ```ebnf
-med_file     = markdown_raw | manifest , { node_block | markdown_prose } ;
+chart        = markdown_raw | manifest , { node_block | markdown_prose } ;
 manifest     = "::meta"   , NL , { kv_line } , "::end" , NL ,
                "::schema" , NL , { kv_line } , "::end" , NL ,
                "::index"  , NL , { "#" , TEXT_LINE , NL | index_row } , "::end" , NL ;
