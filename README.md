@@ -8,9 +8,9 @@ version    = "1.0.0"
 domain     = "pan-clinical (specialty-invariant kernel)"
 
 [substrates]
-context = { id = "[1]", ref = "cursor/plugins/pstack/skills/statechart", render = ["statechart/tla", "mermaid/*"] }
-graph   = { id = "[2]", ref = "arXiv:2604.27820v1", container = ".og / ~ebnf" }
-workup  = { id = "seed", ref = "cl-aip/mycin", math = "lean", logic = "tla" }
+chart  = { id = "[1]", render = ["tla", "mermaid"] }
+graph  = { id = "[2]", container = ".og / ~ebnf" }
+workup = { id = "seed", math = "lean", logic = "tla" }
 
 [pipeline]
 input   = "clinical case --natural-language"
@@ -31,24 +31,24 @@ maximum = ["utility", "generality"]
 ```mermaid
 flowchart LR
   Case["Clinical Case (NL)"] --> Workup["agent.workup"]
-  KB[("ObjectGraph KBs [2]")] <-->|"search_index / resolve_context"| Workup
+  KB[("ObjectGraph KBs [2]")] <-->|"::index / :requires"| Workup
   Workup --> Med[".med Graph-Logic"]
   Med -->|"Strict: tla + js"| TLC["/statechart SANY + TLC [1]"]
   TLC --> Chart["Verified stateDiagram-v2 + report.md"]
   Med -->|"Relaxed: G -> .mermaid"| Mmd["Native .mermaid Frameworks [1]"]
-  Chart --> Pele["CommonMark / Pele SVG"]
-  Mmd --> Pele
+  Chart --> Out["stateDiagram-v2 / SVG"]
+  Mmd --> Out
 ```
 
 1. **Markdown & ObjectGraph Superset.** Every CommonMark `.md` or OpenGigantic `.og` file is a valid `.med` file. Reference knowledge bases crawled during `agent.workup` and case workups emitted as `.med` share one schema and federate across files via `uri#id` edge targets.
-2. **Traversal Over Injection (`CRAWLS [2]`).** Agents never inject whole corpora; they read `::index`, route node IDs semantically, auto-traverse `:requires`, enforce `scope` at Pass 1, deduplicate `skip-if-known` nodes, and never skip `::warning` blocks.
+2. **Index addressing (`CRAWLS [2]`).** A file is entered at `::index`. `:requires` names the nodes a step depends on. A `::warning` travels with its node at every reading depth. `scope` is the visibility of a node.
 3. **Signed Epistemic Tri-Separation (`seed`).** Affirmation (`cf > 0`), disconfirmation (`cf < 0`), and ignorance (`cf = 0`) stay distinct. Unmentioned or pending findings bind `0.00` (`"unknown"`), never negative; hedged prose binds intermediate certainty, never `+1.00`.
 4. **Enforced Pan-Clinical Domain-Invariance.** Core `.med` syntax, node/edge types, certainty math, and crawl/transition logic forbid specialty-bound tokens. Specialty ontologies enter solely through `::meta` (`domain:`), typed measurement scales (`nominal`, `ordinal`, `quantitative`, `temporal`), and federated `uri#id` knowledge graphs; any parser or rule engine hardcoding a single clinical specialty violates `.med` conformance.
 5. **Verified `/statechart` with Full `.mermaid` Relaxation (`RENDERS [1]`).** Deductive `rule`/`hypothesis` operators and explicit `action` transitions lower to SANY/TLC `/statechart` when exhaustive state-space verification is required, and relax freely to any native `.mermaid` diagram family (`stateDiagram-v2`, `flowchart`, `sequenceDiagram`, `timeline`, `gantt`, `xychart-beta`, `erDiagram`, `requirementDiagram`, `quadrantChart`, `mindmap`, `sankey-beta`) whenever topology-matched rendering yields higher clinical interpretability.
 
 ---
 
-## 2. Pan-Clinical Graph Ontology & Token Cost (`[2]`)
+## 2. Pan-Clinical Graph Ontology (`[2]`)
 
 | Node Type | Epistemic Role (`seed`) | ObjectGraph Role (`[2]`) | Render Role (`[1]`) |
 |---|---|---|---|
@@ -113,12 +113,6 @@ theorem domain_relabel_invariant {α β : Type} (g : MedGraph α) (f : α → β
     (g.relabel f fInv).scale (f x) = g.scale x ∧
     canObserve r ((g.relabel f fInv).scope (f x)) = canObserve r (g.scope x) := by
   simp [MedGraph.relabel, Function.comp, h]
-
-def indexCost (k : Nat) : Nat := 30 + 6 * k
-def queryCost (k denseMatched fullResolved : Nat) : Nat :=
-  indexCost k + 15 * denseMatched + 180 * fullResolved
-
-theorem crawl_beats_full_injection : queryCost 12 4 2 < 1800 := by decide
 ```
 
 ---
@@ -269,7 +263,7 @@ id            = ( LETTER | "_" ) , { LETTER | DIGIT | "_" | "-" } ;
 
 ### 5.1 Domain-Neutral Crawl & Backward-Chaining Logic (`agent.workup { CRAWLS [2] }`)
 
-`agent.workup` queries external reference graphs exclusively via `search_index(uri, role)` and `resolve_context(uri, ids, depth, role, session)`, enforcing non-skippable `::warning` reads, `O(1)` `reject-premise` pruning, and automatic discovery of unknown diagnostic frontier nodes:
+Workup reads `::index`, follows `:requires`, keeps every `::warning` with its node, drops a rule whose premise is already false, and records unresolved findings as the frontier:
 
 ```tla
 ---- MODULE AgentWorkup ----
@@ -291,7 +285,7 @@ Init ==
   /\ phase = "index" /\ resolved = {} /\ warningsRead = {}
   /\ pruned = {} /\ frontier = {}
 
-ResolveContext ==
+ResolveRequires ==
   /\ phase = "index"
   /\ LET sel  == {"r_active", "r_pruned"} \cap ScopedVisible
          full == sel \cup UNION {Requires(n) : n \in sel}
@@ -308,7 +302,7 @@ BackwardChain ==
   /\ UNCHANGED <<resolved, warningsRead>>
 
 Done == phase = "done" /\ UNCHANGED vars
-Next == ResolveContext \/ BackwardChain \/ Done
+Next == ResolveRequires \/ BackwardChain \/ Done
 Spec == Init /\ [][Next]_vars
 
 WarningsNeverSkipped == (resolved \cap HasWarning) \subseteq warningsRead
@@ -319,7 +313,7 @@ FrontierDiscovered   == (phase = "done") => ("f_pending" \in frontier)
 
 ### 5.2 Strict `/statechart` Lowering (`tla` + `js` -> SANY + TLC)
 
-When exhaustive finite-state verification is selected, extracting `tla` fences from `.med` nodes and prepending the integer centi-CF preamble (`round(100 * cf)` in `-100..100`, scaling `cf-thresholds: [+0.20, -0.80]` to `TauPos == 20`, `TauNeg == -80`, with `-999` for `.conflict`) produces `(SPEC.tla, SPEC.cfg, view.mjs)` for Cursor's `/statechart` harness (`statechart SPEC.tla --config SPEC.cfg --view view.mjs --out SPEC-chart`):
+When exhaustive finite-state verification is selected, `tla` fences plus the integer centi-CF preamble (`round(100 * cf)` in `-100..100`, scaling `cf-thresholds: [+0.20, -0.80]` to `TauPos == 20`, `TauNeg == -80`, with `-999` for `.conflict`) compile to `SPEC.tla`, `SPEC.cfg`, and `view.mjs`:
 
 - **`context` / unresolved `finding` with `var=<v> init=<v0>`:** Emits `VARIABLE <v>`, `Init` `<v> = "<v0>"`, and `TypeOK` `<v> \in <Pascal(v)>Dom`.
 - **`rule` & `hypothesis` `tla` fences:** State-level operators evaluated over `vars` via `CfFire`, `CfPos`, `CfNeg`, and `CfBipolar`.
@@ -356,7 +350,7 @@ EvalEq(v, target) == IF v = target THEN 100 ELSE IF v = "unknown" THEN 0 ELSE -1
 
 ### 5.3 Full Relaxation of `/statechart` to `.mermaid` Frameworks
 
-`/statechart` (`stateDiagram-v2` via TLC) may be **fully relaxed** to any native `.mermaid` framework (rendered directly by CommonMark viewers or `pele@1.9.0` without `view.mjs` or Java/TLC) whenever continuous physiology, deductive rule graphs, multi-team handoffs, or longitudinal timelines are more interpretable than a discrete state product:
+`/statechart` (`stateDiagram-v2`) may be fully relaxed to any native `.mermaid` framework whenever a continuous, deductive, handover, or longitudinal picture is the readable form of the same graph:
 
 | `.mermaid` Framework | Clinical Workup Topology | `.med` Graph Projection (`G -> .mermaid`) |
 |---|---|---|
@@ -373,7 +367,7 @@ Every relaxed `.mermaid` projection MUST satisfy `validRelaxation`: `safetyBreak
 ```lean
 inductive RenderFramework
   | statechartTla      -- Strict SANY + TLC verified stateDiagram-v2
-  | stateDiagram       -- Relaxed Harel stateDiagram-v2 (no TLC / view.mjs required)
+  | stateDiagram       -- Harel stateDiagram-v2
   | flowchart          -- Deductive rule DAGs & clinical triage algorithms
   | sequenceDiagram    -- Multi-service consults, handoffs & lab/imaging escalations
   | timelineOrGantt    -- Serial biomarker kinetics, washouts & longitudinal care
@@ -457,7 +451,7 @@ act-add-anaerobe | action | clinician | +1.00 | metronidazole, anaerobic, bacter
 inv-allergy-gate | invariant | all | +1.00 | safety, allergy, beta-lactam, gate
 inv-pseudo-cover | invariant | clinician | +1.00 | safety, pseudomonas, premature-narrowing
 inv-anaerobe-cover | invariant | clinician | +1.00 | safety, bacteroides, anaerobic, coverage
-__view | meta | all | +1.00 | statechart, regions, mermaid, pele
+__view | meta | all | +1.00 | statechart, regions, mermaid
 ::end
 
 ::node [id=ctx-patient type=context cf=+1.00 scope=all entity=PATIENT var=regimen init=none]
@@ -707,7 +701,6 @@ export const step = (a) => ({
   ActStartBlactam: "start anti-pseudomonal beta-lactam",
   ActStartAztreonam: "start aztreonam",
   ActAddAnaerobe: "add metronidazole",
-  ActNaiveNarrow: "narrow off anti-pseudomonal Rx",
   Done: "workup complete",
 }[a] ?? a);
 ```
@@ -837,7 +830,7 @@ stateDiagram-v2
 
 ### 6.2 Case II (Cardiovascular / Emergency Triage -> Relaxed `.mermaid` Mode): `SYNTH-1937-108`
 
-Demonstrates pan-clinical generality across quantitative biomarkers, hemodynamic differentials, bipolar rule-out (`+0.80` pre-CTA overturned to `-0.90` on negative CTA), and direct relaxation of `/statechart` to `flowchart` + `sequenceDiagram` without `view.mjs` or TLC boilerplate.
+Demonstrates pan-clinical generality across quantitative biomarkers, hemodynamic differentials, bipolar rule-out (`+0.80` pre-CTA overturned to `-0.90` on negative CTA), and a `flowchart` plus `sequenceDiagram` reading of the same graph.
 
 ```text
 Case SYNTH-1937-108 (1937-09-03):
