@@ -12,8 +12,6 @@ process = "workup { CRAWLS ::index, :requires }"
 output  = "graph.logic --fileformat .med { RENDERS mermaid }"
 ```
 
-> Synthetic data only (`SYNTH-` ids, 1937 dates). Not a medical device, prescription, or clinical order.
-
 ## 1. Axioms
 
 1. **Superset.** Every CommonMark `.md` or OpenGigantic `.og` file is a valid `.med` file. Files compose across `uri#id` edges.
