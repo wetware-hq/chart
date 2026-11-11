@@ -1,20 +1,20 @@
-# `.med`
+# `.chart`
 
 ```toml
 [med]
-media_type = "text/vnd.med+markdown"
-extension  = ".med"
+media_type = "text/vnd.chart+markdown"
+extension  = ".chart"
 version    = "1.0.0"
 
 [pipeline]
 input   = "clinical case --natural-language"
 process = "workup { CRAWLS ::index, :requires }"
-output  = "graph.logic --fileformat .med { RENDERS mermaid }"
+output  = "graph.logic --fileformat .chart { RENDERS mermaid }"
 ```
 
 ## 1. Axioms
 
-1. **Superset.** Every CommonMark `.md` or OpenGigantic `.og` file is a valid `.med` file. Files compose across `uri#id` edges.
+1. **Superset.** Every CommonMark `.md` or OpenGigantic `.og` file is a valid `.chart` file. Files compose across `uri#id` edges.
 2. **Graph read.** Entry is `::index`. `:requires` loads dependencies. `::warning` is never skipped. `scope` gates visibility.
 3. **Signed certainty.** Affirmation (`cf > 0`), negation (`cf < 0`), and ignorance (`cf = 0`) stay distinct. Unknown is `0.00`; hedged prose stays in `(+0.20, +0.70]`.
 4. **Domain invariance.** Core syntax, math, and logic hold no specialty tokens. Specialty enters only through `::meta`, `scale`, and `uri#id` targets.
