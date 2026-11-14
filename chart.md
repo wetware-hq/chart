@@ -1,347 +1,71 @@
 # `.chart`
 
-`type: resource.reference` · **normative**
-
-Specify the `.chart` (`text/vnd.chart+markdown`) biomedical graph-logic format, its intranet BLE mesh imprint, and its oracle-gated steering DAG. Folded templates, formal theories, and the `SYNTH-1937-108` fixture live inside this file so a frontier model can materialize a runtime or checker at test time.
-
-## Specification
-
-```json { type: notebook.cell }
-{
-  "id": "chart.md",
-  "type": "resource.reference",
-  "role": "normative .chart format, BLE mesh imprint, and oracle steering contract",
-  "reads": ["DISCLAIMER", "clinical case or .chart graph", "local BLE packets", "vouched peer sections"],
-  "writes": [".chart graph outside the repository"],
-  "must": ["read DISCLAIMER first", "preserve ::warning blocks", "keep egress intranet", "apply a lens only on human oracle accept"],
-  "check": ["cf_laws", "golomb_036", "rlnc_gen0", "sheaf_ward", "lens_oracle", "message_dag", "Ti"]
-}
-```
-
-## Graph
-
-- [DISCLAIMER](DISCLAIMER)
-- [LICENSE](LICENSE)
-
-## Composition
-
-```toml { type: notebook.cell }
+```toml
+[med]
 media_type = "text/vnd.chart+markdown"
-extension = ".chart"
-version = "1.1.0"
-disclaimer = "DISCLAIMER"
-licence = "LICENSE"
-egress = "intranet"
-radio = "ble"
-replaces = "pager"
-template = "bitchat"
-ttl = 7
-hitl = true
-mode = "oracle"
-structure = "DAG"
-store = "rlnc"
-query = "golomb-rice"
-memory = "sheaf"
-survey = "optic"
-inspect = "lens"
-edit = "lens"
-fixture = "SYNTH-1937-108"
+extension  = ".chart"
+version    = "1.1.0"
+
+[pipeline]
+input   = "clinical case --natural-language"
+process = "workup { CRAWLS ::index, :requires } -> imprint { BLE intranet, RLNC, Golomb, sheaf }"
+output  = "graph.logic --fileformat .chart { STEERS DAG(optic, lens, oracle), RENDERS mermaid }"
+
+[mesh]
+intranet  = true
+bluetooth = true
+radio     = "ble"
+replaces  = "pager"
+template  = "bitchat"
+ttl       = 7
+hitl      = true
+mode      = "oracle"
 ```
 
-## Indications
+## 1. Axioms
 
-| Task | Minimum read |
-|---|---|
-| Read or audit a `.chart` workup | `DISCLAIMER`, then `::index`, `:requires`, and every attached `::warning` |
-| Parse or emit `.chart` bytes | `### 2. Grammar` and `### 7. Canonical instantiation` |
-| Evaluate signed certainty or lower to `mermaid` | `### 1. Ontology and epistemic calculus` and `### 3. Workup and transition logic` |
-| Imprint a chart on a local phone mesh | `### 4. Local BLE mesh imprint` and `### 5. Network coding, Golomb-Rice query, and sheaf recall` |
-| Steer a chart by P2P pages under HITL oracle | `### 6. Category-theoretic steering` and `### 8. Organization and folded templates` |
-| Red-team an implementation | `## Falsification` and the folded `attacks` manifest |
+1. **Superset.** Every CommonMark `.md` or OpenGigantic `.og` file is a valid `.chart` file. Entry is `::index`. `:requires` loads dependencies. `::warning` is never skipped. `scope` gates visibility. Graphs compose across local `uri#id` edges; a file without `::imprint` is a single-section chart with an empty message DAG.
+2. **Signed certainty.** Affirmation (`cf > 0`), negation (`cf < 0`), and ignorance (`cf = 0`) stay distinct. Unknown is `0.00`; hedged prose stays in `(+0.20, +0.70]`.
+3. **Domain invariance.** Core syntax, math, and logic hold no specialty tokens. Specialty enters only through `::meta`, `scale`, and `uri#id` targets; `section` and `message` are specialty-invariant infrastructure.
+4. **Near-mobile BLE intranet (`bitchat` template, replaces pager).** Charts imprint onto an offline-capable ward intranet of mobile phones (`intranet = true`, `bluetooth = true`, `egress = intranet`, `radio = ble`), templated on the dual-role BLE GATT mesh of `bitchat` (origin `ttl = 7`, ~469 B MTU fragments, LRU deduplication, degree-adaptive flood and BFS source routing, ward-sealed `Noise_XX` live sessions and `Noise_X` courier envelopes). Internet or Nostr relays and cleartext clinical broadcasts are forbidden. Two-way acknowledged BLE pages (`channel = page`, `ack = true`) supersede one-way clinical pagers (`replaces = pager`); the ontology carries no pager vertex.
+5. **Random linear network coding (`GF(2^8)^w`).** Each chart generation splits into `k` `w`-byte source symbols over `GF(2^8) = GF(2)[x]/(x^8 + x^4 + x^3 + x + 1)` (`poly = 0x11b`). Peers store and re-encode linear combinations `y = sum_{j=0..k-1} c_j * s_j` (`ttl |-> max(ttl - 1, 0)`); any `k` linearly independent rows invert by Gaussian elimination over `GF(2^8)` to recover the generation.
+6. **Golomb-coded queries (`M >= 1`).** Peers request missing coded-packet indices `i_0 < i_1 < ... < i_{n-1}` as non-negative gaps `g_0 = i_0`, `g_r = i_r - i_{r-1} - 1` compressed by parametric Golomb coding of modulus `M >= 1` (unary quotient `1^(g div M) || 0` plus truncated-binary remainder of width `floor(log2 M)` or `ceil(log2 M)` bits, specializing at `M = 2^b` to `b`-bit Golomb-Rice coding).
+7. **Presheaf memorization & sheaf recall.** Peers cover a finite ward site `(Open, <=)`. A peer at open `U` memorizes local section `s_U in F(U)` via functorial, idempotent restriction `rho^U_V`; global workup state is recalled iff peer sections agree on every overlap `U_i cap U_j` (unique sheaf `glue`), returning `none` on conflict.
+8. **Embedded DAG steering (`optic`, `lens`, `oracle`).** P2P steering envelopes embed in the graph as `message` vertices whose `:requires` parent edges form a strict finite DAG (`survey < inspect/edit < accept`) and whose `:steers` edges target clinical vertices (`hitl = true`, `mode = oracle`). `survey` acts by a concrete optic (`split`/`rejoin`, carrying non-skippable `::warning` flags and no `put`); `inspect` and `edit` form the `get` and `put` of a well-behaved bidirectional lens (`GetPut`, `PutGet`, `PutPut`, residual-preserving); only `kind = accept` signed by `oracle = human` applies a lens `put` to clinical state under all `invariant` gates.
+9. **Unified chart (`mermaid`).** `rule` and `hypothesis` nodes are pure state operators; `action` and human-accepted `message` nodes are guarded transitions. `__view` renders the clinical statechart and embedded steering DAG as any `mermaid` diagram (`stateDiagram-v2`, `flowchart`, `sequenceDiagram`, `timeline`, `gantt`, `xychart-beta`, `sankey-beta`, `erDiagram`, `requirementDiagram`, `quadrantChart`, `mindmap`), either directly or checked by SANY + TLC from `tla` fences.
 
-Stop at the first sufficient row. A file with no `::imprint` block is a `1.0.0` chart: one section covering `::index` and an empty message DAG.
-
-## Contraindications
-
-- A `.chart` file, a coded packet, a survey optic, a lens proposal, or an oracle-accept page is a research model, never a medical record, clinical order, or prescription; `DISCLAIMER` governs every read and emission.
-- Unknown (`cf = 0.00`) means unrecorded, never negative and never permission to skip a safety gate.
-- `egress = internet`, Nostr relays, public chat rooms, and cleartext broadcast of clinical bytes are non-conformant; the radio carrier is intranet BLE only.
-- `replaces = pager` names the synchronous acknowledged page channel (`channel=page`, `ack=true`); the ontology has no pager hardware vertex.
-- An agent or orchestrator peer (`AI2A`) may store packets, answer queries, emit `survey` optics, and propose `edit` lenses, and may never author `kind=accept`; `acceptWell` holds for `human` (`A2H`) only.
-- A `survey` optic carries no `put` (`carriesPut = false`); a `lens` put updates its focus (`plan`) while leaving its residual (`cta` and `::warning` obligations) untouched.
-- Storing or relaying a coded packet at a peer is transport, not acceptance; rank-deficient packets and clashing sheaf overlaps hold the prior plan.
-
-## Algorithm
-
-### Variables
-
-```toml { type: notebook.cell }
-objective = "imprint a clinical chart on an intranet BLE mesh and steer it under human oracle acceptance"
-
-[independent]
-case = "clinical observations and unknown frontier findings"
-packets = "GF(2^8) random linear coded symbols and Golomb-Rice missing-id queries"
-messages = "DAG-ordered survey optics, lens proposals, and oracle accepts"
-principal = "human | agent"
-
-[dependent]
-section = "recalled sheaf section on the ward site, or empty glue on conflict"
-cf = "bipolar rational certainty factor in [-1.00, +1.00] or conflict"
-plan = "current clinical state after any admitted human accept"
-
-[controlled]
-egress = "intranet"
-radio = "ble"
-ttl_origin = 7
-field_poly = 283
-rice_k = 2
-tau_pos = 20
-tau_neg = -80
-oracle = "human-only on kind=accept"
-```
-
-### Process
-
-```csv { type: notebook.cell }
-operator,law
-controls,egress stays intranet over BLE with origin TTL 7 and polynomial 0x11b
-design,separate pure rule and hypothesis certainty from lens proposals and human accepts
-transport,flood or source-route sealed RLNC packets and page envelopes across vouched peers
-stopping,apply a plan transition only on human oracle accept satisfying safety invariants
-search,crawl ::index and :requires and request missing packet ids via Golomb-Rice gaps
-filters,drop internet hops non-increasing queries rank cycles and unaccepted edits
-recovery,hold the prior plan when rank is deficient sheaf glue clashes or an invariant fails
-```
-
-```mermaid { type: notebook.cell }
-stateDiagram-v2
-  direction LR
-  [*] --> Triage: CF(dissection)=+0.80, CF(acs)=+0.75
-  Triage --> AntiImpulse: msg-accept(act-esmolol, human)
-  AntiImpulse --> Flap: act-cta (flap => CF +1.00)
-  AntiImpulse --> Normal: act-cta (normal => CF -0.90)
-  Flap --> Surgery: msg-accept(act-surgery, human)
-  Normal --> Heparin: msg-accept(act-heparin, human) [CF(dissection) < -0.80]
-  Triage --> PrematureHeparin: unaccepted or unguarded heparin (breaks InvAnticoagGate)
-  classDef breaks fill:#ffecee,stroke:#e72e3b,stroke-width:2.5px,color:#cd2834
-  class PrematureHeparin breaks
-```
-
-```mermaid { type: notebook.cell }
-flowchart LR
-  ward[sec-ward] --> nurse[sec-nurse]
-  ward --> clin[sec-clin]
-  survey[msg-survey] --> edit[msg-edit]
-  survey --> hold[msg-hold]
-  edit --> accept[msg-accept]
-  accept --> esmolol[act-esmolol]
-  hold -. held .-> heparin[act-heparin]
-```
-
-Symbolic reasoning. `type: sandbox.playground`.
-
-```tla
----- MODULE ChartSteer ----
-EXTENDS Integers
-CONSTANTS kind, oracle, egress, cf_dissection
-AdmitHeparin == kind = "accept" /\ oracle = "human" /\ egress = "intranet" /\ cf_dissection < -80
-====
-```
-
-```lisp
-(defun admit-heparin (kind oracle egress cf-dissection)
-  (and (string= kind "accept")
-       (string= oracle "human")
-       (string= egress "intranet")
-       (< cf-dissection -80)))
-```
-
-```lean
-def lispAdmitSteer (kind oracle egress : String) (cfDissection : Int) : Bool :=
-  decide (kind = "accept") &&
-  decide (oracle = "human") &&
-  decide (egress = "intranet") &&
-  decide (cfDissection < -80)
-
-theorem Ti :
-    lispAdmitSteer "accept" "human" "intranet" (-90) = true ∧
-    lispAdmitSteer "accept" "human" "intranet" (-80) = false ∧
-    lispAdmitSteer "accept" "agent" "intranet" (-90) = false ∧
-    lispAdmitSteer "edit" "human" "intranet" (-90) = false ∧
-    lispAdmitSteer "accept" "human" "internet" (-90) = false := by
-  decide
-```
-
-```bend
-object Trace { name, holds }
-
-def backward(ti_holds):
-  if ti_holds:
-    return Trace { name: "breakpoint", holds: 1 }
-  else:
-    return Trace { name: "refuse", holds: 0 }
-```
-
-### 0. Axioms
-
-1. **Disclaimer.** Read [DISCLAIMER](DISCLAIMER) before any node. Every `::warning` on a visited or surveyed node is non-skippable.
-2. **Superset.** Every CommonMark `.md` or OpenGigantic `.og` file is a valid `.chart` file. Files compose across `uri#id` edges; entry is `::index`, `:requires` loads dependencies, and `scope` gates visibility.
-3. **Signed certainty.** Affirmation (`cf > 0`), negation (`cf < 0`), and ignorance (`cf = 0`) stay distinct. Unknown is `0.00`; hedged prose stays in `(+0.20, +0.70]`.
-4. **Domain invariance.** Core syntax, math, and logic hold no specialty tokens. Specialty enters only through `::meta`, `scale`, and `uri#id` targets. `section` and `message` are infrastructure.
-5. **Unified chart (`mermaid`).** `rule` and `hypothesis` nodes are pure state operators; `action` nodes are transitions. `__view` and `__steer` render the graph as any `mermaid` diagram (`stateDiagram-v2`, `flowchart`, `sequenceDiagram`, `timeline`, `gantt`, `xychart-beta`, `sankey-beta`, `erDiagram`, `requirementDiagram`, `quadrantChart`, `mindmap`), either directly or checked by TLC from `tla` fences.
-6. **Imprint.** A chart imprints onto an intranet mesh of phones over Bluetooth Low Energy (`intranet=true`, `bluetooth=true`, `egress=intranet`, `radio=ble`, origin `ttl=7`), templated on the local BLE layer of `bitchat`.
-7. **Page.** Near-mobile BLE messaging replaces the clinical pager (`replaces=pager`). A page is a `message` vertex with `channel=page` and `ack=true` carrying an optic or lens; there is no pager vertex.
-8. **Oracle.** Every chart carrying a `message` runs in `hitl=true`, `mode=oracle`. Only `kind=accept` with `oracle=human` applies a lens put to clinical state.
-9. **DAG.** Steering messages embed in the graph as a finite DAG: along `:requires`, every message parent has strictly smaller rank (`survey = 0 < edit = hold = 1 < accept = 2`).
-10. **Store, query, and recall.** Peers store random linear combinations over \(\mathrm{GF}(2^8)\), query missing packet ids by Golomb-Rice gap coding, memorize peer-local presheaf sections, and recall global workup state by sheaf glue.
-11. **Optic and lens.** `survey` is a read-only optic (`split`/`rejoin`, no `put`). `inspect` is the `get` of a well-behaved lens and `edit` is its `put`, preserving the unedited residual and safety invariants.
-
-### 1. Ontology and epistemic calculus
+## 2. Ontology, Epistemic & Mesh Algebra (`lean`)
 
 | Node | Role | Edge | Role |
 |---|---|---|---|
-| `context` | Entity container (`entity`, `goals`) | `:contains` | Child scope (`context`, `finding`, `hypothesis`) |
-| `finding` | Observation (`scale`, `src`, `var`) | `:requires` | Premise, guard, parent message, or check |
+| `context` | Entity container (`entity`, `goals`, `var`) | `:contains` | Child scope (`context`, `finding`, `hypothesis`) |
+| `finding` | Observation (`scale`, `src`, `var`) | `:requires` | Premise, guard, parent `message`, or check |
 | `hypothesis` | Inferred target (`cf`) | `:supports` | Positive rule weight (`cf=+w`) |
 | `rule` | Production (`if` -> `cf`) | `:contradicts` | Negative rule weight (`cf=-w`) |
 | `action` | Inquiry or intervention (`Next`) | `:resolves` | Inquiry binding unknown `finding` (`cf = 0.00`) |
-| `invariant` | Safety or liveness check | `:transitions` | Action order |
-| `meta` | `__view`, `__steer`, `__changelog` | `:supersedes` | Revision or `uri#id` link |
-| `section` | Peer-local presheaf section (`open`, `peer`) | `:restricts` | Larger open onto a smaller open |
-| `message` | P2P steering envelope (`kind`, `channel`) | `:steers` | Message onto the clinical vertex it addresses |
+| `invariant` | Epistemic, mesh, or oracle safety check | `:transitions` | Action order |
+| `section` | Peer-local presheaf section (`open`, `peer`) | `:restricts` | Restriction `rho^U_V` from `U` to `V <= U` |
+| `message` | P2P steering envelope (`kind`, `channel=page`) | `:steers` | Steering target on `finding`, `hypothesis`, or `action` |
+| `meta` | `__view`, `__changelog` | `:supersedes` | Revision or `uri#id` link |
 
-The `cf` attribute on a `section` or `message` records presence of that vertex (`+1.00`). Clinical certainty lives exclusively on `finding`, `rule`, and `hypothesis` vertices, combined over exact rationals \(\mathbb{Q}\) by MYCIN bipolar combination (`cfCombine`), with positive firing gate `trueP` (`cf > +0.20`) and disconfirmation gate `falseP` (`cf < -0.80`).
-
-### 2. Grammar
-
-```text { type: notebook.cell }
-chart        = markdown_raw | manifest , { node_block | markdown_prose } ;
-manifest     = "::meta"   , NL , { kv_line } , "::end" , NL ,
-               "::schema" , NL , { kv_line } , "::end" , NL ,
-               "::index"  , NL , { "#" , TEXT_LINE , NL | index_row } , "::end" , NL ,
-               [ "::imprint" , NL , { kv_line } , "::end" , NL ] ;
-kv_line      = id , ":" , WS , TEXT_LINE , NL ;
-index_row    = id , "|" , node_type , "|" , scope , "|" , signed_cf , "|" , TEXT_LINE , NL ;
-node_block   = "::node" , WS , "[" , attr , { WS , attr } , "]" , NL ,
-               "::dense" , ( WS , TEXT_LINE , NL | NL , TEXT_LINE , NL , "::end" , NL ) ,
-               { edge_decl | "::edges" , NL , { edge_decl } , "::end" , NL | fenced_code | colon_block } ,
-               "::end" , NL ;
-attr         = "scale=" , ( "nominal" | "ordinal" | "quantitative" | "temporal" )
-             | id , "=" , ( id | STRING | NUMBER | signed_cf | "true" | "false" ) ;
-node_type    = "context" | "finding" | "hypothesis" | "rule" | "action" | "invariant" | "meta" | "section" | "message" ;
-scope        = "all" | "clinician" | "orchestrator" | "worker" | "patient" | id ;
-signed_cf    = [ "+" | "-" ] , ( "1.00" | "1.0" | "0." , DIGIT , { DIGIT } | "0" ) ;
-fenced_code  = "```" , ( "tla" | "lean" | "mermaid" | "js" | id ) , NL , VERBATIM , "```" , NL ;
-colon_block  = "::" , id , [ WS , "[" , attr , { WS , attr } , "]" ] , NL , VERBATIM , "::end" , NL ;
-edge_decl    = ( "->" | "<-" | "<>" ) , "[:" , edge_type , { WS , attr } , "]" ,
-               WS , target , { "," , [ WS ] , target } , NL ;
-edge_type    = "contains" | "requires" | "supports" | "contradicts" | "resolves" | "transitions" | "supersedes" | "restricts" | "steers" ;
-target       = [ URI_PATH , "#" ] , id ;
-id           = ( LETTER | "_" ) , { LETTER | DIGIT | "_" | "-" } ;
-```
-
-Inside `colon_block`, `::optic` records a survey focus (`get`), `::lens` records `inspect`, `edit`, and `residual`, `::packet` records either a coded RLNC generation (`kind=coded`) or a Golomb-Rice missing-set request (`kind=query`), and `::warning` records a non-skippable clinical hazard.
-
-### 3. Workup and transition logic
-
-Integer centi-certainty (`round(100 * cf)` in `-100..100`, with `-999` for `.conflict`) couples deductive `rule` and `hypothesis` evaluation, intranet BLE hop bounds, and oracle-gated plan transitions inside `MedKernel`.
-
-```tla { type: notebook.cell }
----- MODULE MedKernel ----
-EXTENDS Integers, FiniteSets
-
-TauPos == 20
-TauNeg == -80
-Egress == "intranet"
-Hitl == TRUE
-Mode == "oracle"
-TtlOrigin == 7
-
-CfAnd(a, b)   == IF a <= b THEN a ELSE b
-CfOr(a, b)    == IF a >= b THEN a ELSE b
-CfNot(a)      == -a
-CfScale(a, b) == IF a * b >= 0 THEN (a * b + 50) \div 100 ELSE -(((-(a * b)) + 50) \div 100)
-CfFire(p, w)  == IF p > TauPos THEN CfScale(p, w) ELSE 0
-CfPos(a, b)   == a + b - CfScale(a, b)
-CfNeg(a, b)   == a + b + CfScale(-a, -b)
-CfBipolar(cp, cn) ==
-  IF cp = 100 /\ cn = -100 THEN -999
-  ELSE LET m == IF cp <= (-cn) THEN cp ELSE (-cn)
-           n == (cp + cn) * 100
-           d == 100 - m
-       IN IF n >= 0 THEN (n + (d \div 2)) \div d ELSE -(((-n) + (d \div 2)) \div d)
-EvalEq(v, t)  == IF v = t THEN 100 ELSE IF v = "unknown" THEN 0 ELSE -100
-
-Relay(ttl) == IF ttl = 0 THEN 0 ELSE ttl - 1
-Apply(kind, oracle, plan, target, cf) ==
-  IF kind = "accept" /\ oracle /\ (target /= "heparin" \/ cf < TauNeg)
-  THEN target
-  ELSE plan
-Rank == [survey |-> 0, edit |-> 1, hold |-> 1, accept |-> 2]
-====
-```
-
-### 4. Local BLE mesh imprint
-
-Each phone in the ward intranet operates simultaneously as a BLE GATT central and peripheral, templated on the local mesh layer of `bitchat` v2.0 (`Noise_XX_25519_ChaChaPoly_SHA256` live sessions, `Noise_X` offline courier envelopes, ~469-byte MTU fragments, LRU deduplication, degree-adaptive flood and BFS source routing, origin `ttl = 7`). Relays decrement `ttl` by 1 (`Relay(7) = 6`, `Relay(0) = 0`), may cache opaque sealed packets, and never evaluate or apply a lens.
-
-| Template mechanism (`bitchat`) | `.chart` law |
-|---|---|
-| Dual-role BLE GATT mesh (`ttl = 7`, ~469 B fragments) | Adopted verbatim as the local radio carrier (`radio = ble`, `intranet = true`). |
-| `Noise_XX` sessions and `Noise_X` courier seals | Mandatory ward-scoped sealing; clinical payloads never travel as cleartext broadcast. |
-| Nostr internet relays, mailboxes, geohash rooms | Forbidden (`egress = intranet`); any `internet` hop is ill-formed (`hopOk = false`). |
-| Unstructured chat text | Replaced by typed `message` vertices (`channel = page`, `ack = true`, `replaces = pager`). |
-| Peer symmetry on state mutation | Asymmetric: any vouched peer may relay or propose; only `oracle = human` may `accept`. |
-| GCS probabilistic history filter | Supplemented by exact Golomb-Rice gap queries (`rice-k = 2`) for missing RLNC packet ids. |
-
-### 5. Network coding, Golomb-Rice query, and sheaf recall
-
-**Store (`rlnc`).** A chart generation splits into \(k\) source symbols over \(\mathrm{GF}(2^8) = \mathrm{GF}(2)[x]/(x^8 + x^4 + x^3 + x + 1)\) (irreducible byte polynomial `0x11b`, integer `283`). A coded packet carries coefficient vector \((c_0, \dots, c_{k-1})\) and linear combination \(y = \bigoplus_{j=0}^{k-1} c_j \otimes s_j\); relays may re-encode in flight, and any \(k\) linearly independent rows invert to recover the generation. In generation `0` of `SYNTH-1937-108` (`k = 2`), `s0 = 0x00` (`find-cta` centi-CF `0`) and `s1 = 0x50` (`hyp-dissection` centi-CF `80`):
-
-| Packet | Holder | Coefficients | Payload | Recovery |
-|---|---|---|---|---|
-| `id-1` | `peer-nurse` | `03 05` | `0x0b` | \(\det = (03 \otimes 02) \oplus (05 \otimes 01) = 06 \oplus 05 = 03\), \(03^{-1} = \text{f6}\) |
-| `id-2` | `peer-orch` | `01 02` | `0xa0` | \(M^{-1} = [[\text{f7}, 03], [\text{f6}, 01]] \Rightarrow (00, 50)\) |
-
-A rank-deficient row such as `01 00` yields `0x00` for both `(0x00, 0x50)` and `(0x00, 0x11)`, leaving `s1` undetermined.
-
-**Query (`golomb-rice`).** A peer requests missing coded-packet ids as a strictly increasing natural-number list \(i_0 < i_1 < \dots < i_{m-1}\), mapped to non-negative gaps \(g_0 = i_0\) and \(g_r = i_r - i_{r-1} - 1\). Under Golomb-Rice parameter `k = 2` (modulus \(M = 4\)), gap \(g = 4q + r\) encodes as \(q\) ones, a `0` stop bit, and the 2-bit big-endian remainder \(r\). Missing set `{0, 3, 6}` has gaps `0, 2, 2`, encoding to the 9-bit stream `000010010` (`000` · `010` · `010`), while `{3, 0}` is rejected as non-increasing.
-
-**Memorize and recall (`sheaf`).** Peers cover the ward site \(\text{none} \le \text{nurse} \le \text{both}\), \(\text{none} \le \text{clin} \le \text{both}\). The presheaf \(\mathcal{F}\) assigns each open its visible finding slots (`out` outside the open; `zero`, `pos`, or `neg` inside). Restriction \(\rho^U_V\) masks out-of-scope slots to `out` (`functorial = true` across all 64 slot triples). Sheaf `glue` reconciles `sec-nurse` (`pain = pos, cta = zero, trop = out`) and `sec-clin` (`pain = out, cta = zero, trop = pos`) on their overlap `cta = zero` to recall `sec-ward` (`reconstruct = true` across all 27 interior triples), and returns `none` whenever peers disagree on `cta`.
-
-### 6. Category-theoretic steering
-
-Messages embed inside the `.chart` graph with `:requires` parent edges and `:steers` target edges. Rank assignment `survey = 0`, `edit = 1`, `hold = 1`, `accept = 2` enforces a strict DAG (`rank parent < rank child`); clinical vertices never `:requires` a message.
-
-- **Survey (`optic`).** A profunctor/concrete optic `opticSplit : St → Plan × SurveyFocus` and `opticRejoin : Plan × SurveyFocus → St` projects the clinical summary together with non-skippable `::warning` flags (`warnCta`) and carries no `put` (`carriesPut .survey = false`).
-- **Inspect and edit (`lens`).** `inspect : St → Plan` and `edit : St → Plan → St` satisfy `GetPut`, `PutGet`, and `PutPut` while holding the residual (`cta` and `warnCta`) invariant (`opticLensOk = true`).
-- **Oracle (`accept`).** `apply` mutates `plan` if and only if `kind = accept`, `oracle = human`, and—when targeting `heparin`—`cfDissection < -80` strictly (`-80` stays refused; `-90` after negative CTA passes).
-
-| Kind | Principal | From | Target | `cfDissection` | Resulting `plan` |
-|---|---|---|---|---|---|
-| `survey` | `human` or `agent` | `triage` | `anti_impulse` | `+80` | `triage` |
-| `inspect` | `human` or `agent` | `triage` | `anti_impulse` | `+80` | `triage` |
-| `edit` | `agent` (`peer-orch`) | `triage` | `anti_impulse` | `+80` | `triage` |
-| `accept` | `agent` | `triage` | `anti_impulse` | `+80` | `triage` (ill-formed) |
-| `accept` | `human` (`peer-clinician`) | `triage` | `anti_impulse` | `+80` | `anti_impulse` |
-| `accept` | `human` (`peer-clinician`) | `anti_impulse` | `heparin` | `+80` or `-80` | `anti_impulse` |
-| `accept` | `human` (`peer-clinician`) | `anti_impulse` | `heparin` | `-90` | `heparin` |
-
-All Lean 4.35 theories for §1, §5, and §6—`cf_laws`, `golomb_036`, `rlnc_gen0`, `sheaf_ward`, `lens_oracle`, and `message_dag`—are folded into the collapsible `chart theories` cell below. Expand that label to typecheck the whole specification in a single pass.
-
-<details>
-<summary>chart theories</summary>
-
-```lean { type: notebook.cell }
-inductive NodeType | context | finding | hypothesis | rule | action | invariant | «meta» | «section» | message
+```lean
+inductive NodeType | context | finding | hypothesis | rule | action | invariant | «section» | message | «meta»
   deriving DecidableEq, Repr
-inductive EdgeType | contains | requires | supports | contradicts | resolves | transitions | supersedes | restricts | steers
+inductive EdgeType | contains | requires | supports | contradicts | resolves | transitions | restricts | steers | supersedes
   deriving DecidableEq, Repr
 inductive Scale    | nominal | ordinal | quantitative | temporal
   deriving DecidableEq, Repr
 inductive Card     | single | multi
   deriving DecidableEq, Repr
 inductive EpistemicClass | affirmed | negated | unknown | breaks
+  deriving DecidableEq, Repr
+inductive Egress   | intranet | internet
+  deriving DecidableEq, Repr
+inductive Radio    | ble | legacyPager | wan
+  deriving DecidableEq, Repr
+inductive Principal | human | agent
+  deriving DecidableEq, Repr
+inductive MsgKind  | survey | inspect | edit | accept
   deriving DecidableEq, Repr
 
 structure Q where
@@ -377,7 +101,7 @@ def cfCombine (es : List Q) : Cf :=
   if cPos == Q.one && cNeg == Q.neg Q.one then .conflict
   else .val (Q.div (Q.add cPos cNeg) (Q.sub Q.one (Q.min cPos (Q.abs cNeg))))
 
-def trueP : Cf → Bool | .val q => Q.lt (Q.centi 20) q | .conflict => false
+def trueP  : Cf → Bool | .val q => Q.lt (Q.centi 20) q   | .conflict => false
 def falseP : Cf → Bool | .val q => Q.lt q (Q.centi (-80)) | .conflict => false
 
 def evalAtom {α : Type} (κ : Card) (dom : List α) (μ : α → Q) (p : α → Bool) : Cf :=
@@ -392,281 +116,449 @@ def validChart (proj : EpistemicClass → EpistemicClass) : Bool :=
   proj .affirmed != proj .negated && proj .affirmed != proj .unknown && proj .negated != proj .unknown &&
   proj .affirmed != .breaks && proj .negated != .breaks && proj .unknown != .breaks
 
-theorem cf_laws :
-    cfCombine [Q.centi 40, Q.centi 60] = .val (Q.centi 76) ∧
-    cfCombine [Q.centi 40, Q.centi 60, Q.centi (-20)] = cfCombine [Q.centi (-20), Q.centi 60, Q.centi 40] ∧
-    falseP (cfCombine [Q.centi 50, Q.centi 60, Q.centi (-98)]) = true ∧
-    cfCombine [Q.one, Q.neg Q.one] = .conflict ∧
-    validChart id = true := by decide
-
-def rice2 (n : Nat) : List Bool :=
-  let q := n / 4
-  let r := n % 4
-  List.replicate q true ++ [false, r / 2 == 1, r % 2 == 1]
-
-def decodeRice2 : Nat → List Bool → Option (Nat × List Bool)
-  | 0, _ => none
-  | _fuel + 1, false :: b1 :: b0 :: rest =>
-      some ((if b1 then 2 else 0) + (if b0 then 1 else 0), rest)
-  | fuel + 1, true :: rest =>
-      match decodeRice2 fuel rest with
-      | some (n, rest2) => some (n + 4, rest2)
-      | none => none
-  | _, _ => none
-
-def roundRice (n : Nat) : Bool :=
-  match decodeRice2 (n + 2) (rice2 n) with
-  | some (m, rest) => m == n && rest == []
-  | none => false
-
-def allRice : Bool := (List.range 32).all roundRice
-
-def encodeSet (xs : List Nat) : List Bool :=
-  (xs.foldl (fun (acc : Int × List Bool) x =>
-      let g : Nat := ((Int.ofNat x) - (acc.1 + 1)).toNat
-      (Int.ofNat x, acc.2 ++ rice2 g))
-    ((-1 : Int), ([] : List Bool))).2
-
-def decodeSet : Nat → Int → List Bool → Option (List Nat)
-  | 0, _, _ => none
-  | _, _, [] => some []
-  | fuel + 1, prev, bs =>
-      match decodeRice2 fuel bs with
-      | some (g, rest) =>
-          let x := prev + 1 + Int.ofNat g
-          match decodeSet fuel x rest with
-          | some xs => some (x.toNat :: xs)
-          | none => none
-      | none => none
-
-def strictly : List Nat → Bool
-  | [] => true
-  | [_] => true
-  | a :: b :: rest => a < b && strictly (b :: rest)
-
-def bits036 : List Bool := encodeSet [0, 3, 6]
-
-theorem golomb_036 :
-    allRice = true ∧
-    strictly [0, 3, 6] = true ∧
-    bits036 = [false, false, false, false, true, false, false, true, false] ∧
-    decodeSet 20 (-1) bits036 = some [0, 3, 6] ∧
-    strictly [3, 0] = false := by decide
+def gfAdd (a b : Nat) : Nat := (a % 256) ^^^ (b % 256)
 
 def gfMul (a b : Nat) : Nat :=
   let rec go : Nat → Nat → Nat → Nat → Nat
     | 0, _, _, p => p
     | i + 1, a, b, p =>
-        let p := if b % 2 == 1 then p ^^^ a else p
+        let p  := if b % 2 == 1 then p ^^^ a else p
         let hi := a / 128
-        let a := (a * 2) % 256
-        let a := if hi == 1 then a ^^^ 0x1b else a
+        let a  := (a * 2) % 256
+        let a  := if hi == 1 then a ^^^ 0x1b else a
         go i a (b / 2) p
   go 8 (a % 256) (b % 256) 0
 
-def coded (c0 c1 s0 s1 : Nat) : Nat :=
-  gfMul c0 s0 ^^^ gfMul c1 s1
+def gfSq (a : Nat) : Nat := gfMul a a
 
-def rec0 : Nat := gfMul 0xf7 0x0b ^^^ gfMul 0x03 0xa0
-def rec1 : Nat := gfMul 0xf6 0x0b ^^^ gfMul 0x01 0xa0
+def gfInv (a : Nat) : Nat :=
+  let a2  := gfSq a
+  let a4  := gfSq a2
+  let a8  := gfSq a4
+  let a16 := gfSq a8
+  let a32 := gfSq a16
+  let a64 := gfSq a32
+  let a128 := gfSq a64
+  gfMul a128 (gfMul a64 (gfMul a32 (gfMul a16 (gfMul a8 (gfMul a4 a2)))))
 
-theorem rlnc_gen0 :
-    gfMul 0x03 0x02 = 0x06 ∧
-    gfMul 0x05 0x01 = 0x05 ∧
-    gfMul 0x03 0x02 ^^^ gfMul 0x05 0x01 = 0x03 ∧
-    gfMul 0x03 0xf6 = 0x01 ∧
-    gfMul 0xf6 0x02 = 0xf7 ∧
-    gfMul 0xf6 0x05 = 0x03 ∧
-    gfMul 0xf6 0x01 = 0xf6 ∧
-    gfMul 0xf6 0x03 = 0x01 ∧
-    coded 0x03 0x05 0x00 0x50 = 0x0b ∧
-    coded 0x01 0x02 0x00 0x50 = 0xa0 ∧
-    rec0 = 0x00 ∧
-    rec1 = 0x50 ∧
-    coded 0x01 0x00 0x00 0x50 = coded 0x01 0x00 0x00 0x11 ∧
-    0x50 ≠ 0x11 := by decide
+def gfVecAdd (xs ys : List Nat) : List Nat := List.zipWith gfAdd xs ys
+def gfVecScale (c : Nat) (xs : List Nat) : List Nat := xs.map (gfMul c)
 
-inductive Open | none | nurse | clin | both
+structure CodedPkt where
+  coeffs  : List Nat
+  payload : List Nat
   deriving DecidableEq, Repr
 
-inductive Slot | out | zero | pos | neg
-  deriving DecidableEq, Repr
+def rlncEncode (src : List (List Nat)) (coeffs : List Nat) : CodedPkt :=
+  let w := match src with | [] => 0 | s :: _ => s.length
+  let z := List.replicate w 0
+  let y := (List.zip coeffs src).foldl (fun acc (c, s) => gfVecAdd acc (gfVecScale c s)) z
+  ⟨coeffs.map (· % 256), y⟩
 
-structure Sec where
+def rlncRecode (weights : List Nat) (pkts : List CodedPkt) : CodedPkt :=
+  let k := match pkts with | [] => 0 | p :: _ => p.coeffs.length
+  let w := match pkts with | [] => 0 | p :: _ => p.payload.length
+  (List.zip weights pkts).foldl
+    (fun acc (α, p) =>
+      ⟨gfVecAdd acc.coeffs (gfVecScale α p.coeffs), gfVecAdd acc.payload (gfVecScale α p.payload)⟩)
+    ⟨List.replicate k 0, List.replicate w 0⟩
+
+def elimStep (col : Nat) (rows : List CodedPkt) : Option (CodedPkt × List CodedPkt) :=
+  match rows.find? (fun r => r.coeffs.getD col 0 != 0) with
+  | none => none
+  | some piv =>
+      let rest := rows.erase piv
+      let inv  := gfInv (piv.coeffs.getD col 0)
+      let norm : CodedPkt := ⟨gfVecScale inv piv.coeffs, gfVecScale inv piv.payload⟩
+      let next := rest.map (fun r =>
+        let f := r.coeffs.getD col 0
+        if f == 0 then r
+        else ⟨gfVecAdd r.coeffs (gfVecScale f norm.coeffs), gfVecAdd r.payload (gfVecScale f norm.payload)⟩)
+      some (norm, next)
+
+def forwardElim : Nat → Nat → List CodedPkt → Option (List CodedPkt)
+  | 0, _, _ => some []
+  | rem + 1, col, rows =>
+      match elimStep col rows with
+      | none => none
+      | some (piv, rest) =>
+          match forwardElim rem (col + 1) rest with
+          | none => none
+          | some tail => some (piv :: tail)
+
+def backSub : List CodedPkt → List (List Nat)
+  | [] => []
+  | piv :: tail =>
+      let solved := backSub tail
+      let k      := piv.coeffs.length
+      let col    := k - 1 - solved.length
+      let rhs    := (List.zip (piv.coeffs.drop (col + 1)) solved).foldl
+        (fun acc (c, s) => gfVecAdd acc (gfVecScale c s)) piv.payload
+      rhs :: solved
+
+def rlncDecode (k : Nat) (pkts : List CodedPkt) : Option (List (List Nat)) :=
+  if k == 0 || pkts.length < k then none
+  else (forwardElim k 0 pkts).map backSub
+
+def floorLog2 : Nat → Nat → Nat
+  | 0, _ => 0
+  | fuel + 1, n => if n <= 1 then 0 else 1 + floorLog2 fuel (n / 2)
+
+def toBitsBE : Nat → Nat → List Bool
+  | 0, _ => []
+  | w + 1, n => toBitsBE w (n / 2) ++ [n % 2 == 1]
+
+def fromBitsBE (bs : List Bool) : Nat :=
+  bs.foldl (fun acc b => 2 * acc + (if b then 1 else 0)) 0
+
+def golombEncode (m n : Nat) : List Bool :=
+  if m <= 1 then List.replicate n true ++ [false]
+  else
+    let q := n / m
+    let r := n % m
+    let b := floorLog2 m m
+    let c := 2 ^ (b + 1) - m
+    let remBits := if r < c then toBitsBE b r else toBitsBE (b + 1) (r + c)
+    List.replicate q true ++ [false] ++ remBits
+
+def takeBits : Nat → List Bool → Option (List Bool × List Bool)
+  | 0, bs => some ([], bs)
+  | w + 1, b :: bs =>
+      match takeBits w bs with
+      | some (hd, tl) => some (b :: hd, tl)
+      | none => none
+  | _ + 1, [] => none
+
+def golombDecodeOne (m : Nat) : Nat → List Bool → Option (Nat × List Bool)
+  | 0, _ => none
+  | _fuel + 1, false :: rest =>
+      if m <= 1 then some (0, rest)
+      else
+        let b := floorLog2 m m
+        let c := 2 ^ (b + 1) - m
+        match takeBits b rest with
+        | none => none
+        | some (lo, rest1) =>
+            let v := fromBitsBE lo
+            if v < c then some (v, rest1)
+            else match rest1 with
+              | bit :: rest2 => some (2 * v + (if bit then 1 else 0) - c, rest2)
+              | [] => none
+  | fuel + 1, true :: rest =>
+      match golombDecodeOne m fuel rest with
+      | some (v, rest') => some (v + m, rest')
+      | none => none
+  | _, [] => none
+
+def strictlyInc : List Nat → Bool
+  | [] | [_] => true
+  | a :: b :: rest => a < b && strictlyInc (b :: rest)
+
+def golombEncodeSet (m : Nat) (xs : List Nat) : Option (List Bool) :=
+  if !strictlyInc xs || m == 0 then none
+  else
+    some ((xs.foldl (fun (prev, acc) x =>
+      let gap := (Int.ofNat x - (prev + 1)).toNat
+      (Int.ofNat x, acc ++ golombEncode m gap)) ((-1 : Int), [])).2)
+
+def golombDecodeSet (m : Nat) : Nat → Int → List Bool → Option (List Nat)
+  | 0, _, _ => none
+  | _, _, [] => some []
+  | fuel + 1, prev, bs =>
+      match golombDecodeOne m fuel bs with
+      | none => none
+      | some (gap, rest) =>
+          let x := prev + 1 + Int.ofNat gap
+          match golombDecodeSet m fuel x rest with
+          | some xs => some (x.toNat :: xs)
+          | none => none
+
+inductive Open | none | nurse | clin | both deriving DecidableEq, Repr
+inductive Slot | out | zero | pos | neg     deriving DecidableEq, Repr
+
+structure Section3 where
   pain : Slot
-  cta : Slot
+  cta  : Slot
   trop : Slot
   deriving DecidableEq, Repr
 
-def hasPain : Open → Bool | .nurse | .both => true | _ => false
-def hasCta  : Open → Bool | .nurse | .clin | .both => true | _ => false
-def hasTrop : Open → Bool | .clin | .both => true | _ => false
-
-def restrict (v : Open) (s : Sec) : Sec :=
-  { pain := if hasPain v then s.pain else .out
-  , cta := if hasCta v then s.cta else .out
-  , trop := if hasTrop v then s.trop else .out }
-
-def glue (sn sc : Sec) : Option Sec :=
-  if sn.cta != sc.cta || sn.cta == .out then none
-  else if sn.trop != .out || sc.pain != .out then none
-  else if sn.pain == .out || sc.trop == .out then none
-  else some { pain := sn.pain, cta := sn.cta, trop := sc.trop }
-
-def sWard : Sec := { pain := .pos, cta := .zero, trop := .pos }
-def secNurse : Sec := { pain := .pos, cta := .zero, trop := .out }
-def secClin : Sec := { pain := .out, cta := .zero, trop := .pos }
-def secClash : Sec := { pain := .out, cta := .pos, trop := .pos }
-
-def le : Open → Open → Bool
-  | .none, _ => true
-  | .nurse, .nurse => true
-  | .nurse, .both => true
-  | .clin, .clin => true
-  | .clin, .both => true
-  | .both, .both => true
+def openLe : Open → Open → Bool
+  | .none, _ | .nurse, .nurse | .nurse, .both | .clin, .clin | .clin, .both | .both, .both => true
   | _, _ => false
 
-def slots : List Slot := [.out, .zero, .pos, .neg]
-def inside : List Slot := [.zero, .pos, .neg]
-def opens : List Open := [.none, .nurse, .clin, .both]
+def restrictSec (v : Open) (s : Section3) : Section3 :=
+  { pain := if openLe .nurse v then s.pain else .out
+  , cta  := if openLe .nurse v || openLe .clin v then s.cta else .out
+  , trop := if openLe .clin v then s.trop else .out }
 
-def functorial : Bool :=
-  opens.all fun u => opens.all fun v => opens.all fun w =>
-    slots.all fun a => slots.all fun b => slots.all fun c =>
-      let s : Sec := { pain := a, cta := b, trop := c }
-      (!(le w v && le v u) || restrict w (restrict v s) == restrict w s) &&
-        restrict v (restrict v s) == restrict v s
+def sheafGlue (sn sc : Section3) : Option Section3 :=
+  if sn.cta != sc.cta || sn.cta == .out then none
+  else if sn.trop != .out || sc.pain != .out || sn.pain == .out || sc.trop == .out then none
+  else some ⟨sn.pain, sn.cta, sc.trop⟩
 
-def reconstruct : Bool :=
-  inside.all fun a => inside.all fun b => inside.all fun c =>
-    let s : Sec := { pain := a, cta := b, trop := c }
-    glue (restrict .nurse s) (restrict .clin s) == some s
+structure Optic (S A R : Type) where
+  split  : S → R × A
+  rejoin : R × A → S
 
-theorem sheaf_ward :
-    restrict .nurse sWard = secNurse ∧
-    restrict .clin sWard = secClin ∧
-    glue secNurse secClin = some sWard ∧
-    glue secNurse secClash = none ∧
-    functorial = true ∧
-    reconstruct = true := by decide
+def opticCompose {S A B R₁ R₂ : Type} (o₁ : Optic S A R₁) (o₂ : Optic A B R₂) : Optic S B (R₁ × R₂) :=
+  { split  := fun s => let (r₁, a) := o₁.split s; let (r₂, b) := o₂.split a; ((r₁, r₂), b)
+  , rejoin := fun ((r₁, r₂), b) => o₁.rejoin (r₁, o₂.rejoin (r₂, b)) }
 
-inductive Plan | triage | anti | surgery | heparin
-  deriving DecidableEq, Repr
+structure Lens (S A : Type) where
+  inspect : S → A
+  edit    : S → A → S
 
-structure St where
-  plan : Plan
-  cta : Slot
+def lensToOptic {S A : Type} (l : Lens S A) : Optic S A S :=
+  { split := fun s => (s, l.inspect s), rejoin := fun (s, a) => l.edit s a }
+
+inductive Plan | triage | antiImpulse | surgery | heparin deriving DecidableEq, Repr
+
+structure ChartState where
+  plan         : Plan
+  cta          : Slot
   cfDissection : Int
-  warnCta : Bool
+  warnCta      : Bool
   deriving DecidableEq, Repr
 
 structure SurveyFocus where
-  cta : Slot
+  cta          : Slot
   cfDissection : Int
-  warnCta : Bool
+  warnCta      : Bool
   deriving DecidableEq, Repr
 
-def opticSplit (s : St) : Plan × SurveyFocus :=
-  (s.plan, { cta := s.cta, cfDissection := s.cfDissection, warnCta := s.warnCta })
+def surveyOptic : Optic ChartState SurveyFocus Plan :=
+  { split  := fun s => (s.plan, ⟨s.cta, s.cfDissection, s.warnCta⟩)
+  , rejoin := fun (p, f) => ⟨p, f.cta, f.cfDissection, f.warnCta⟩ }
 
-def opticRejoin (p : Plan × SurveyFocus) : St :=
-  { plan := p.1, cta := p.2.cta, cfDissection := p.2.cfDissection, warnCta := p.2.warnCta }
+def warnOptic : Optic SurveyFocus Bool (Slot × Int) :=
+  { split  := fun f => ((f.cta, f.cfDissection), f.warnCta)
+  , rejoin := fun ((c, d), w) => ⟨c, d, w⟩ }
 
-def inspect (s : St) : Plan := s.plan
-def edit (s : St) (a : Plan) : St := { s with plan := a }
+def planLens : Lens ChartState Plan :=
+  { inspect := ChartState.plan
+  , edit    := fun s p => { s with plan := p } }
 
-def plans : List Plan := [.triage, .anti, .surgery, .heparin]
+def carriesPut : MsgKind → Bool | .edit => true | _ => false
 
-def opticLensOk : Bool :=
-  plans.all fun p0 => slots.all fun c => [false, true].all fun w =>
-    plans.all fun a => plans.all fun b =>
-      let s : St := { plan := p0, cta := c, cfDissection := 80, warnCta := w }
-      opticRejoin (opticSplit s) == s &&
-        (opticSplit s).2.warnCta == s.warnCta &&
-        inspect (edit s a) == a &&
-        edit s (inspect s) == s &&
-        edit (edit s a) b == edit s b &&
-        (edit s a).cta == s.cta &&
-        (edit s a).warnCta == s.warnCta
+def hopAdmitted (e : Egress) (r : Radio) (ttl : Nat) : Bool :=
+  e == .intranet && r == .ble && ttl > 0 && ttl <= 7
 
-inductive Kind | survey | inspect | edit | accept
-  deriving DecidableEq, Repr
+def relayTtl (ttl : Nat) : Nat := if ttl == 0 then 0 else ttl - 1
 
-def carriesPut : Kind → Bool | .edit => true | _ => false
+def steerApply (k : MsgKind) (p : Principal) (e : Egress) (r : Radio)
+    (recalled : Bool) (s : ChartState) (target : Plan) : ChartState :=
+  let anticoagOk := target != .heparin || s.cfDissection < -80
+  if k == .accept && p == .human && e == .intranet && r == .ble && recalled && anticoagOk then
+    planLens.edit s target
+  else s
 
-def apply (k : Kind) (oracle : Bool) (plan target : Plan) (cf : Int) : Plan :=
-  if k == .accept && oracle && (target != .heparin || cf < -80) then target else plan
+def dagAcyclic {α : Type} [DecidableEq α] (nodes : List α) (rank : α → Nat) (parents : α → List α) : Bool :=
+  nodes.all (fun n => (parents n).all (fun p => rank p < rank n))
 
-theorem lens_oracle :
-    opticLensOk = true ∧
+theorem cf_laws :
+    cfCombine [Q.centi 40, Q.centi 60] = .val (Q.centi 76) ∧
+    cfCombine [Q.centi 40, Q.centi 60, Q.centi (-20)] = cfCombine [Q.centi (-20), Q.centi 60, Q.centi 40] ∧
+    cfCombine [Q.centi 50, Q.centi 60] = .val (Q.centi 80) ∧
+    falseP (cfCombine [Q.centi 50, Q.centi 60, Q.centi (-98)]) = true ∧
+    cfCombine [Q.one, Q.neg Q.one] = .conflict ∧
+    validChart id = true := by decide
+
+def gen0Src : List (List Nat) := [[0x00, 0x2c], [0x50, 0x44]]
+def pktNurse : CodedPkt := rlncEncode gen0Src [0x03, 0x05]
+def pktOrch  : CodedPkt := rlncEncode gen0Src [0x01, 0x02]
+def pktRelay : CodedPkt := rlncRecode [0x02, 0x07] [pktNurse, pktOrch]
+
+theorem rlnc_laws :
+    pktNurse = ⟨[0x03, 0x05], [0x0b, 0x3b]⟩ ∧
+    pktOrch  = ⟨[0x01, 0x02], [0xa0, 0xa4]⟩ ∧
+    pktRelay = ⟨[0x01, 0x04], [0x5b, 0x27]⟩ ∧
+    rlncDecode 2 [pktNurse, pktOrch] = some gen0Src ∧
+    rlncDecode 2 [pktNurse, pktRelay] = some gen0Src ∧
+    rlncDecode 2 [⟨[0x01, 0x00], [0x00, 0x2c]⟩, ⟨[0x02, 0x00], [0x00, 0x58]⟩] = none := by decide
+
+def golombRoundAll (m : Nat) : Bool :=
+  (List.range 32).all (fun n => golombDecodeOne m (n + 4) (golombEncode m n) == some (n, []))
+
+theorem golomb_laws :
+    golombRoundAll 1 = true ∧
+    golombRoundAll 3 = true ∧
+    golombRoundAll 4 = true ∧
+    golombRoundAll 5 = true ∧
+    golombEncodeSet 4 [0, 3, 6] = some [false, false, false, false, true, false, false, true, false] ∧
+    golombDecodeSet 4 20 (-1) [false, false, false, false, true, false, false, true, false] = some [0, 3, 6] ∧
+    golombEncodeSet 3 [0, 3, 6] = some [false, false, false, true, true, false, true, true] ∧
+    golombDecodeSet 3 20 (-1) [false, false, false, true, true, false, true, true] = some [0, 3, 6] ∧
+    golombEncodeSet 4 [3, 0] = none := by decide
+
+def allSlots : List Slot := [.out, .zero, .pos, .neg]
+def inSlots  : List Slot := [.zero, .pos, .neg]
+def allOpens : List Open := [.none, .nurse, .clin, .both]
+
+def presheafFunctorial : Bool :=
+  allOpens.all fun u => allOpens.all fun v => allOpens.all fun w =>
+    allSlots.all fun a => allSlots.all fun b => allSlots.all fun c =>
+      let s : Section3 := ⟨a, b, c⟩
+      (!(openLe w v && openLe v u) || restrictSec w (restrictSec v s) == restrictSec w s) &&
+      restrictSec v (restrictSec v s) == restrictSec v s
+
+def sheafUniqueGlue : Bool :=
+  inSlots.all fun a => inSlots.all fun b => inSlots.all fun c =>
+    let s : Section3 := ⟨a, b, c⟩
+    sheafGlue (restrictSec .nurse s) (restrictSec .clin s) == some s
+
+def wardSec  : Section3 := ⟨.pos, .zero, .pos⟩
+def nurseSec : Section3 := ⟨.pos, .zero, .out⟩
+def clinSec  : Section3 := ⟨.out, .zero, .pos⟩
+
+theorem sheaf_laws :
+    presheafFunctorial = true ∧
+    sheafUniqueGlue = true ∧
+    restrictSec .nurse wardSec = nurseSec ∧
+    restrictSec .clin wardSec = clinSec ∧
+    sheafGlue nurseSec clinSec = some wardSec ∧
+    sheafGlue nurseSec ⟨.out, .pos, .pos⟩ = none := by decide
+
+def allPlans : List Plan := [.triage, .antiImpulse, .surgery, .heparin]
+
+def opticLensWellBehaved : Bool :=
+  allPlans.all fun p0 => allSlots.all fun c => [false, true].all fun w =>
+    allPlans.all fun a => allPlans.all fun b =>
+      let s : ChartState := ⟨p0, c, 80, w⟩
+      let lo := lensToOptic planLens
+      let co := opticCompose surveyOptic warnOptic
+      surveyOptic.rejoin (surveyOptic.split s) == s &&
+      co.rejoin (co.split s) == s &&
+      (co.split s).2 == s.warnCta &&
+      (surveyOptic.split s).2.warnCta == s.warnCta &&
+      planLens.inspect (planLens.edit s a) == a &&
+      planLens.edit s (planLens.inspect s) == s &&
+      planLens.edit (planLens.edit s a) b == planLens.edit s b &&
+      (planLens.edit s a).cta == s.cta &&
+      (planLens.edit s a).warnCta == s.warnCta &&
+      lo.rejoin (lo.split s) == s
+
+inductive MsgId | mSurvey | mEditEsmolol | mHoldHeparin | mAcceptEsmolol deriving DecidableEq, Repr
+def msgRank : MsgId → Nat | .mSurvey => 0 | .mEditEsmolol | .mHoldHeparin => 1 | .mAcceptEsmolol => 2
+def msgParents : MsgId → List MsgId
+  | .mSurvey => []
+  | .mEditEsmolol | .mHoldHeparin => [.mSurvey]
+  | .mAcceptEsmolol => [.mEditEsmolol]
+def cyclicParents : MsgId → List MsgId
+  | .mSurvey => [.mAcceptEsmolol]
+  | m => msgParents m
+
+def sInit : ChartState := ⟨.triage, .zero, 80, true⟩
+def sAnti : ChartState := ⟨.antiImpulse, .zero, 80, true⟩
+def sCleared : ChartState := ⟨.antiImpulse, .neg, -90, false⟩
+
+theorem steering_laws :
+    opticLensWellBehaved = true ∧
     carriesPut .survey = false ∧
     carriesPut .inspect = false ∧
     carriesPut .edit = true ∧
-    apply .accept true .triage .anti 80 = .anti ∧
-    apply .accept false .triage .anti 80 = .triage ∧
-    apply .edit true .triage .anti 80 = .triage ∧
-    apply .survey true .triage .anti 80 = .triage ∧
-    apply .inspect true .triage .anti 80 = .triage ∧
-    apply .accept true .anti .heparin 80 = .anti ∧
-    apply .accept true .anti .heparin (-80) = .anti ∧
-    apply .accept true .anti .heparin (-90) = .heparin := by decide
-
-inductive Msg | survey | edit | hold | accept
-  deriving DecidableEq, Repr
-
-def rank : Msg → Nat | .survey => 0 | .edit => 1 | .hold => 1 | .accept => 2
-
-def parents : Msg → List Msg
-  | .survey => []
-  | .edit => [.survey]
-  | .hold => [.survey]
-  | .accept => [.edit]
-
-def msgs : List Msg := [.survey, .edit, .hold, .accept]
-
-def dagOk (par : Msg → List Msg) : Bool :=
-  msgs.all fun m => (par m).all fun p => rank p < rank m
-
-def badParents : Msg → List Msg
-  | .survey => [.accept]
-  | .accept => [.survey]
-  | m => parents m
-
-def relay (ttl : Nat) : Nat :=
-  if ttl = 0 then 0 else ttl - 1
-
-inductive Egress | intranet | internet
-  deriving DecidableEq, Repr
-
-def hopOk : Egress → Bool | .intranet => true | .internet => false
-
-inductive Principal | human | agent
-  deriving DecidableEq, Repr
-
-def acceptWell (p : Principal) : Bool := p == .human
-
-theorem message_dag :
-    dagOk parents = true ∧
-    dagOk badParents = false ∧
-    parents .accept = [.edit] ∧
-    relay 7 = 6 ∧
-    relay 0 = 0 ∧
-    hopOk .intranet = true ∧
-    hopOk .internet = false ∧
-    acceptWell .human = true ∧
-    acceptWell .agent = false := by decide
+    hopAdmitted .intranet .ble 7 = true ∧
+    hopAdmitted .internet .ble 7 = false ∧
+    hopAdmitted .intranet .legacyPager 7 = false ∧
+    hopAdmitted .intranet .ble 0 = false ∧
+    relayTtl 7 = 6 ∧
+    relayTtl 0 = 0 ∧
+    dagAcyclic [.mSurvey, .mEditEsmolol, .mHoldHeparin, .mAcceptEsmolol] msgRank msgParents = true ∧
+    dagAcyclic [.mSurvey, .mEditEsmolol, .mHoldHeparin, .mAcceptEsmolol] msgRank cyclicParents = false ∧
+    steerApply .edit .agent .intranet .ble true sInit .antiImpulse = sInit ∧
+    steerApply .accept .agent .intranet .ble true sInit .antiImpulse = sInit ∧
+    steerApply .accept .human .internet .ble true sInit .antiImpulse = sInit ∧
+    steerApply .accept .human .intranet .ble false sInit .antiImpulse = sInit ∧
+    steerApply .accept .human .intranet .ble true sInit .antiImpulse = sAnti ∧
+    steerApply .accept .human .intranet .ble true sAnti .heparin = sAnti ∧
+    steerApply .accept .human .intranet .ble true { sAnti with cfDissection := -80 } .heparin =
+      { sAnti with cfDissection := -80 } ∧
+    steerApply .accept .human .intranet .ble true sCleared .heparin =
+      { sCleared with plan := .heparin } := by decide
 ```
-</details>
 
-### 7. Canonical instantiation
+## 3. Grammar (`~EBNF`)
 
-`SYNTH-1937-108`: `64F, tearing chest pain 45m, R-L brachial SBP delta 28 mmHg, lateral ST-depression, hs-cTnI 68 ng/L (ULN 14), CTA aorta pending, no anticoagulants.` The fixture below is the complete `1.1.0` `.chart` file: clinical workup vertices plus ward sections, RLNC packets, Golomb-Rice query, and steering message DAG. Expand `fixture: synth-1937-108.chart` when parsing or checking bytes.
+```ebnf
+chart        = markdown_raw | manifest , { node_block | markdown_prose } ;
+manifest     = "::meta"    , NL , { kv_line } , "::end" , NL ,
+               "::schema"  , NL , { kv_line } , "::end" , NL ,
+               "::index"   , NL , { "#" , TEXT_LINE , NL | index_row } , "::end" , NL ,
+               [ "::imprint" , NL , { kv_line } , "::end" , NL ] ;
+kv_line      = id , ":" , WS , TEXT_LINE , NL ;
+index_row    = id , WS , "|" , WS , node_type , WS , "|" , WS , scope , WS , "|" , WS , signed_cf , WS , "|" , WS , TEXT_LINE , NL ;
+node_block   = "::node" , WS , "[" , attr , { WS , attr } , "]" , NL ,
+               "::dense" , ( WS , TEXT_LINE , NL | NL , TEXT_LINE , NL , "::end" , NL ) ,
+               { edge_decl | "::edges" , NL , { edge_decl } , "::end" , NL | fenced_code | colon_block } ,
+               "::end" , NL ;
+attr         = "scale=" , ( "nominal" | "ordinal" | "quantitative" | "temporal" )
+             | "egress=" , "intranet"
+             | "radio=" , "ble"
+             | "channel=" , "page"
+             | "kind=" , ( "survey" | "inspect" | "edit" | "accept" | "safety" | "coded" | "query" )
+             | "oracle=" , "human"
+             | id , "=" , ( id_list | STRING | [ "-" ] , NUMBER | signed_cf | "true" | "false" ) ;
+id_list      = id , { "," , id } ;
+node_type    = "context" | "finding" | "hypothesis" | "rule" | "action" | "invariant" | "section" | "message" | "meta" ;
+scope        = "all" | "clinician" | "orchestrator" | "worker" | "patient" | id ;
+signed_cf    = [ "+" | "-" ] , ( "1.00" | "1.0" | "0." , DIGIT , { DIGIT } | "0" ) ;
+fenced_code  = "```" , ( "tla" | "lean" | "mermaid" | "js" | id ) , NL , VERBATIM , "```" , NL ;
+colon_block  = ( "::warning" | "::optic" | "::lens" | "::packet" | "::" , id ) ,
+               [ WS , "[" , attr , { WS , attr } , "]" ] , NL , VERBATIM , "::end" , NL ;
+edge_decl    = ( "->" | "<-" | "<>" ) , "[:" , edge_type , { WS , attr } , "]" ,
+               WS , target , { "," , [ WS ] , target } , NL ;
+edge_type    = "contains" | "requires" | "supports" | "contradicts" | "resolves" | "transitions" | "restricts" | "steers" | "supersedes" ;
+target       = [ URI_PATH , "#" ] , id ;
+id           = ( LETTER | "_" ) , { LETTER | DIGIT | "_" | "-" } ;
+ble_frame    = ver_u8 , type_u8 , ttl_u8 , ts_u64 , flags_u8 , sender_b8 , [ recip_b8 ] , noise_sealed_payload , [ ed25519_sig ] ;
+```
 
-<details>
-<summary>fixture: synth-1937-108.chart</summary>
+## 4. Workup, Imprint & Steering Logic (`tla`)
 
-```text { type: notebook.cell }
+```tla
+---- MODULE MedKernel ----
+EXTENDS Integers, FiniteSets
+
+TauPos    == 20
+TauNeg    == -80
+TtlOrigin == 7
+Egress    == "intranet"
+Radio     == "ble"
+Hitl      == TRUE
+Mode      == "oracle"
+
+CfAnd(a, b)   == IF a <= b THEN a ELSE b
+CfOr(a, b)    == IF a >= b THEN a ELSE b
+CfNot(a)      == -a
+CfScale(a, b) == IF a * b >= 0 THEN (a * b + 50) \div 100 ELSE -(((-(a * b)) + 50) \div 100)
+CfFire(p, w)  == IF p > TauPos THEN CfScale(p, w) ELSE 0
+CfPos(a, b)   == a + b - CfScale(a, b)
+CfNeg(a, b)   == a + b + CfScale(-a, -b)
+CfBipolar(cp, cn) ==
+  IF cp = 100 /\ cn = -100 THEN -999
+  ELSE LET m == IF cp <= (-cn) THEN cp ELSE (-cn)
+           n == (cp + cn) * 100
+           d == 100 - m
+       IN IF n >= 0 THEN (n + (d \div 2)) \div d ELSE -(((-n) + (d \div 2)) \div d)
+EvalEq(v, t)  == IF v = t THEN 100 ELSE IF v = "unknown" THEN 0 ELSE -100
+
+RelayTtl(ttl)               == IF ttl <= 0 THEN 0 ELSE ttl - 1
+HopOk(egress, radio, ttl)   == egress = Egress /\ radio = Radio /\ ttl \in 1..TtlOrigin
+RlncFullRank(rank, k)       == k > 0 /\ rank >= k
+SheafGlueOk(snCta, scCta)   == snCta = scCta /\ snCta /= "out"
+DagEdgeOk(pRank, cRank)     == pRank < cRank
+LensInspect(plan)           == plan
+LensEdit(kind, principal, egress, radio, recalled, guardOk, curPlan, nextPlan) ==
+  IF kind = "accept" /\ principal = "human" /\ egress = Egress /\ radio = Radio /\ recalled /\ guardOk
+  THEN nextPlan
+  ELSE curPlan
+====
+```
+
+## 5. Canonical Instantiation (`SYNTH-1937-108`)
+
+`64F, tearing chest pain 45m, R-L brachial SBP delta 28 mmHg, lateral ST-depression, hs-cTnI 68 ng/L (ULN 14), CTA aorta pending, no anticoagulants; imprinted across BLE intranet peers {peer-nurse, peer-clinician, peer-orch} with GF(2^8)^2 RLNC, Golomb (M=4) missing-set query, sheaf recall, and human-oracle DAG lens steering.`
+
+````markdown
 ::meta
 title: SYNTH-1937-108 Acute Chest Pain & Aortic Dissection Workup
 version: 1.1.0
@@ -676,12 +568,13 @@ scope: all
 ::end
 
 ::schema
-node-types: [context, finding, hypothesis, rule, action, invariant, meta, section, message]
-edge-types: [contains, requires, supports, contradicts, resolves, transitions, supersedes, restricts, steers]
+node-types: [context, finding, hypothesis, rule, action, invariant, section, message, meta]
+edge-types: [contains, requires, supports, contradicts, resolves, transitions, restricts, steers, supersedes]
 scales: [nominal, ordinal, quantitative, temporal]
 scope-levels: [all, clinician, orchestrator, worker, patient]
 cf-thresholds: [+0.20, -0.80]
-steer: [hitl, oracle, dag, rlnc, golomb-rice, sheaf, optic, lens]
+mesh: [intranet, ble, bitchat, rlnc-gf256, golomb, sheaf]
+steering: [hitl, oracle, dag, optic, lens]
 ::end
 
 ::index
@@ -698,55 +591,71 @@ rule-cta-pos | rule | clinician | +1.00 | cta-flap, dissection-confirmed
 rule-cta-neg | rule | clinician | -0.98 | cta-normal, dissection-ruled-out
 hyp-acs | hypothesis | clinician | +0.75 | acs, nstemi
 hyp-dissection | hypothesis | clinician | +0.80 | stanford-type-a, dissection
-act-esmolol | action | clinician | +1.00 | anti-impulse, beta-blockade
-act-cta | action | all | +1.00 | gated-cta-aorta
-act-surgery | action | clinician | +1.00 | open-aortic-repair
-act-heparin | action | clinician | +1.00 | heparin, angiography
-inv-anticoag-gate | invariant | all | +1.00 | safety, no-heparin-before-cta-ruleout
-sec-ward | section | all | +1.00 | glue, both, rlnc, golomb
+sec-ward | section | all | +1.00 | both, sheaf-glue, rlnc-gen0, golomb-m4
 sec-nurse | section | worker | +1.00 | peer-nurse, pain, cta
 sec-clin | section | clinician | +1.00 | peer-clinician, cta, troponin
-msg-survey | message | all | +1.00 | page, survey, optic, warning, peer-nurse
-msg-edit | message | all | +1.00 | page, lens, esmolol, propose, peer-orch
-msg-hold | message | all | +1.00 | page, heparin, no-accept, peer-orch
-msg-accept | message | all | +1.00 | page, accept, human, anti-impulse, peer-clinician
-__view | meta | all | +1.00 | mermaid, stateDiagram-v2
-__steer | meta | all | +1.00 | mermaid, dag, flowchart
+msg-survey | message | all | +1.00 | page, optic, survey, warning, peer-nurse
+msg-edit-esmolol | message | all | +1.00 | page, lens, propose-anti-impulse, peer-orch
+msg-hold-heparin | message | all | +1.00 | page, lens, held-heparin, peer-orch
+msg-accept-esmolol | message | clinician | +1.00 | page, oracle-human, accept-anti-impulse, peer-clinician
+msg-edit-post-cta | message | all | +1.00 | page, lens, post-cta-branch, peer-orch
+act-esmolol | action | clinician | +1.00 | anti-impulse, beta-blockade
+act-cta | action | all | +1.00 | gated-cta-aorta
+act-surgery | action | clinician | +1.00 | open-aortic-repair, oracle-human
+act-heparin | action | clinician | +1.00 | heparin, angiography, oracle-human
+inv-anticoag-gate | invariant | all | +1.00 | safety, no-heparin-before-cta-ruleout
+inv-mesh-oracle | invariant | all | +1.00 | safety, intranet-ble, sheaf-recall, dag-oracle
+__view | meta | all | +1.00 | mermaid, stateDiagram-v2, flowchart
 ::end
 
 ::imprint
-transport: ble-mesh
-radio: ble
 intranet: true
 bluetooth: true
 egress: intranet
+radio: ble
 replaces: pager
 template: bitchat
+ttl: 7
 hitl: true
 mode: oracle
-ttl: 7
-field: gf256
+structure: dag
+store: rlnc-gf256
 poly: 0x11b
-rice-k: 2
-peers: peer-nurse, peer-clinician, peer-orch
+query: golomb
+modulus: 4
+memory: sheaf
+peers: peer-nurse,peer-clinician,peer-orch
 oracle: peer-clinician
 ::end
 
 ::node [id=ctx-encounter type=context cf=+1.00 scope=all entity=ENCOUNTER var=plan init=triage goals="hyp-dissection,hyp-acs"]
 ::dense SYNTH-1937-108|64F|chest-pain-45m|plan=triage
 ->[:contains] find-pain, find-bp-delta, find-troponin, find-cta, hyp-dissection, hyp-acs
+```tla
+PlanDom == {"triage", "anti_impulse", "surgery", "heparin"}
+Done == plan \in {"surgery", "heparin"} /\ UNCHANGED vars
+```
 ::end
 
 ::node [id=find-pain type=finding cf=+1.00 scope=all scale=temporal src="L1: tearing chest pain 45m"]
 ::dense pain=tearing|onset_min=45|cf=+1.00
+```tla
+Pain == "tearing"
+```
 ::end
 
 ::node [id=find-bp-delta type=finding cf=+1.00 scope=all scale=quantitative value=28 unit="mmHg" src="L1: SBP delta 28 mmHg"]
 ::dense sbp_delta_mmhg=28|cf=+1.00
+```tla
+BpDelta == 28
+```
 ::end
 
 ::node [id=find-troponin type=finding cf=+1.00 scope=all scale=quantitative value=68 unit="ng/L" src="L1: hs-cTnI 68 ng/L"]
 ::dense hs_ctni_ng_l=68|uln=14|cf=+1.00
+```tla
+Troponin == 68
+```
 ::end
 
 ::node [id=find-cta type=finding cf=0.00 scope=all scale=nominal var=cta init=unknown]
@@ -754,88 +663,94 @@ oracle: peer-clinician
 ::warning
 CTA aorta is PENDING (cf=0.00). Hold anticoagulation until dissection is excluded.
 ::end
+```tla
+CtaDom == {"unknown", "flap", "normal"}
+```
 ::end
 
 ::node [id=rule-acs type=rule cf=+0.75 scope=clinician]
 ::dense troponin>14->hyp-acs(+0.75)
 ->[:requires] find-troponin
 ->[:supports cf=+0.75] hyp-acs
+```tla
+RuleAcs == CfFire(IF Troponin > 14 THEN 100 ELSE -100, 75)
+```
 ::end
 
 ::node [id=rule-tad-pain type=rule cf=+0.50 scope=clinician]
 ::dense pain=tearing->hyp-dissection(+0.50)
 ->[:requires] find-pain
 ->[:supports cf=+0.50] hyp-dissection
+```tla
+RuleTadPain == CfFire(EvalEq(Pain, "tearing"), 50)
+```
 ::end
 
 ::node [id=rule-tad-bp type=rule cf=+0.60 scope=clinician]
 ::dense sbp_delta>=20->hyp-dissection(+0.60)
 ->[:requires] find-bp-delta
 ->[:supports cf=+0.60] hyp-dissection
+```tla
+RuleTadBp == CfFire(IF BpDelta >= 20 THEN 100 ELSE -100, 60)
+```
 ::end
 
 ::node [id=rule-cta-pos type=rule cf=+1.00 scope=clinician]
 ::dense cta=flap->hyp-dissection(+1.00)
 ->[:requires] find-cta
 ->[:supports cf=+1.00] hyp-dissection
+```tla
+RuleCtaPos == CfFire(EvalEq(cta, "flap"), 100)
+```
 ::end
 
 ::node [id=rule-cta-neg type=rule cf=-0.98 scope=clinician]
 ::dense cta=normal->hyp-dissection(-0.98)
 ->[:requires] find-cta
 ->[:contradicts cf=-0.98] hyp-dissection
+```tla
+RuleCtaNeg == CfFire(EvalEq(cta, "normal"), -98)
+```
 ::end
 
 ::node [id=hyp-acs type=hypothesis cf=+0.75 scope=clinician]
 ::dense acs-nstemi|cf=+0.75
+```tla
+CfHypAcs == CfBipolar(RuleAcs, 0)
+```
 ::end
 
 ::node [id=hyp-dissection type=hypothesis cf=+0.80 scope=clinician]
 ::dense type-a-dissection|cf=+0.80|flap->+1.00|normal->-0.90
+```tla
+CfHypDissection == CfBipolar(CfPos(CfPos(RuleTadPain, RuleTadBp), RuleCtaPos), RuleCtaNeg)
+```
 ::end
 
-::node [id=act-esmolol type=action cf=+1.00 scope=clinician]
-::dense intervene|iv-esmolol|when-dissection>0.20
-->[:requires] hyp-dissection
-->[:transitions] act-cta
-::end
-
-::node [id=act-cta type=action cf=+1.00 scope=all]
-::dense observe|cta-aorta|flap-or-normal
-->[:resolves] find-cta
-->[:transitions] act-surgery, act-heparin
-::end
-
-::node [id=act-surgery type=action cf=+1.00 scope=clinician]
-::dense intervene|open-aortic-repair|when-dissection=+1.00
-->[:requires] find-cta, hyp-dissection
-::end
-
-::node [id=act-heparin type=action cf=+1.00 scope=clinician]
-::dense intervene|heparin+cath|when-dissection<-0.80
-->[:requires] find-cta, hyp-acs, hyp-dissection
-::end
-
-::node [id=inv-anticoag-gate type=invariant cf=+1.00 scope=all kind=safety]
-::dense safety|heparin-requires-dissection-ruled-out
-->[:requires] hyp-dissection, find-cta
-::end
-
-::node [id=sec-ward type=section cf=+1.00 scope=all open=both]
-::dense glue|pain=+1.00|cta=0.00|troponin=+1.00
+::node [id=sec-ward type=section cf=+1.00 scope=all open=both var=recalled init=false]
+::dense glue|pain=+1.00|cta=0.00|troponin=+1.00|rlnc=gf256(k=2,w=2)|golomb=m4
 ->[:restricts] sec-nurse, sec-clin
 ->[:contains] find-pain, find-cta, find-troponin
-::packet [kind=coded generation=0 k=2 field=gf256]
-s0: 00
-s1: 50
-id-1: peer-nurse 03 05 0b
-id-2: peer-orch 01 02 a0
+::packet [kind=coded generation=0 k=2 w=2 poly=283]
+s0: 00 2c
+s1: 50 44
+pkt-nurse: coeffs=03,05 payload=0b,3b ttl=7
+pkt-orch: coeffs=01,02 payload=a0,a4 ttl=6
+pkt-relay: recode=02,07 coeffs=01,04 payload=5b,27 ttl=5
 ::end
-::packet [kind=query coding=golomb-rice k=2]
+::packet [kind=query modulus=4]
 missing: 0,3,6
 gaps: 0,2,2
 bits: 000010010
 ::end
+```tla
+WardRecall ==
+  /\ recalled = FALSE
+  /\ RlncFullRank(2, 2)
+  /\ SheafGlueOk(cta, cta)
+  /\ recalled' = TRUE
+  /\ UNCHANGED <<plan, cta, dag>>
+```
 ::end
 
 ::node [id=sec-nurse type=section cf=+1.00 scope=worker peer=peer-nurse open=nurse]
@@ -848,364 +763,248 @@ bits: 000010010
 ->[:contains] find-cta, find-troponin
 ::end
 
-::node [id=msg-survey type=message cf=+1.00 scope=all channel=page ack=true kind=survey peer=peer-nurse]
-::dense page|focus=hyp-dissection,find-cta|cf-dissection=+0.80|cf-cta=0.00
+::node [id=msg-survey type=message cf=+1.00 scope=all egress=intranet radio=ble channel=page ack=true kind=survey peer=peer-nurse var=dag init=empty]
+::dense page|optic=survey|focus=hyp-dissection,find-cta|ttl=7
+->[:requires] sec-ward
 ->[:steers] hyp-dissection, find-cta
 ::optic
-get: hyp-dissection.cf, find-cta.cf
+split: plan | (cta, cf_dissection, warn_cta)
 ::end
 ::warning
 CTA aorta is PENDING (cf=0.00). Hold anticoagulation until dissection is excluded.
 ::end
+```tla
+DagDom == {"survey", "edit_esmolol", "hold_heparin", "accept_esmolol", "edit_post_cta", "accept_post_cta"}
+MsgSurvey ==
+  /\ recalled = TRUE /\ dag = {}
+  /\ HopOk("intranet", "ble", TtlOrigin)
+  /\ dag' = dag \cup {"survey"}
+  /\ UNCHANGED <<plan, cta, recalled>>
+```
 ::end
 
-::node [id=msg-edit type=message cf=+1.00 scope=all channel=page ack=true kind=edit parents=msg-survey peer=peer-orch]
-::dense propose|inspect=plan|edit=anti_impulse|focus=act-esmolol
+::node [id=msg-edit-esmolol type=message cf=+1.00 scope=all egress=intranet radio=ble channel=page ack=true kind=edit peer=peer-orch]
+::dense page|lens=plan|inspect=triage|edit=anti_impulse|propose-only
 ->[:requires] msg-survey, hyp-dissection
 ->[:steers] act-esmolol
 ::lens
 inspect: plan
 edit: plan=anti_impulse
-residual: cta
+residual: cta,warn_cta
 ::end
+```tla
+MsgEditEsmolol ==
+  /\ "survey" \in dag /\ "edit_esmolol" \notin dag
+  /\ DagEdgeOk(0, 1) /\ CfHypDissection > TauPos
+  /\ plan' = LensEdit("edit", "agent", "intranet", "ble", recalled, TRUE, plan, "anti_impulse")
+  /\ dag' = dag \cup {"edit_esmolol"}
+  /\ UNCHANGED <<cta, recalled>>
+```
 ::end
 
-::node [id=msg-hold type=message cf=+1.00 scope=all channel=page ack=true kind=edit parents=msg-survey peer=peer-orch]
-::dense propose|edit=heparin|no-accept
+::node [id=msg-hold-heparin type=message cf=+1.00 scope=all egress=intranet radio=ble channel=page ack=true kind=edit peer=peer-orch]
+::dense page|lens=plan|edit=heparin|unaccepted-held
 ->[:requires] msg-survey, inv-anticoag-gate
 ->[:steers] act-heparin
-::warning
-This edit has no accept. The plan stays. Heparin in the model needs dissection centi-certainty below -80.
+::lens
+inspect: plan
+edit: plan=heparin
+residual: cta,warn_cta
 ::end
+::warning
+Premature heparin proposal has no human oracle accept and fails CfHypDissection < -0.80 while CTA is unknown.
+::end
+```tla
+MsgHoldHeparin ==
+  /\ "survey" \in dag /\ "hold_heparin" \notin dag
+  /\ DagEdgeOk(0, 1)
+  /\ plan' = LensEdit("edit", "agent", "intranet", "ble", recalled, CfHypDissection < TauNeg, plan, "heparin")
+  /\ dag' = dag \cup {"hold_heparin"}
+  /\ UNCHANGED <<cta, recalled>>
+```
 ::end
 
-::node [id=msg-accept type=message cf=+1.00 scope=all channel=page ack=true kind=accept parents=msg-edit oracle=human peer=peer-clinician]
-::dense accept|plan=anti_impulse|human
-->[:requires] msg-edit
+::node [id=msg-accept-esmolol type=message cf=+1.00 scope=clinician egress=intranet radio=ble channel=page ack=true kind=accept oracle=human peer=peer-clinician]
+::dense page|oracle=human|accept=anti_impulse|applies-lens
+->[:requires] msg-edit-esmolol
 ->[:steers] act-esmolol
 ::end
 
+::node [id=msg-edit-post-cta type=message cf=+1.00 scope=all egress=intranet radio=ble channel=page ack=true kind=edit peer=peer-orch]
+::dense page|lens=plan|post-cta-proposal|awaits-oracle
+->[:requires] msg-survey, find-cta
+->[:steers] act-surgery, act-heparin
+::lens
+inspect: plan
+edit: plan=surgery|heparin
+residual: cta,warn_cta
+::end
+```tla
+MsgEditPostCta ==
+  /\ plan = "anti_impulse" /\ cta \in {"flap", "normal"} /\ "edit_post_cta" \notin dag
+  /\ DagEdgeOk(0, 1)
+  /\ dag' = dag \cup {"edit_post_cta"}
+  /\ UNCHANGED <<plan, cta, recalled>>
+```
+::end
+
+::node [id=act-esmolol type=action cf=+1.00 scope=clinician]
+::dense intervene|iv-esmolol|when-dissection>0.20|oracle=human
+->[:requires] hyp-dissection, msg-accept-esmolol
+->[:transitions] act-cta
+```tla
+ActEsmolol ==
+  /\ plan = "triage" /\ "edit_esmolol" \in dag /\ "accept_esmolol" \notin dag
+  /\ DagEdgeOk(1, 2) /\ CfHypDissection > TauPos
+  /\ plan' = LensEdit("accept", "human", "intranet", "ble", recalled, CfHypDissection > TauPos, plan, "anti_impulse")
+  /\ dag' = dag \cup {"accept_esmolol"}
+  /\ UNCHANGED <<cta, recalled>>
+```
+::end
+
+::node [id=act-cta type=action cf=+1.00 scope=all]
+::dense observe|cta-aorta|flap-or-normal
+->[:resolves] find-cta
+->[:transitions] act-surgery, act-heparin
+```tla
+ActCtaFlap   == /\ plan = "anti_impulse" /\ cta = "unknown" /\ cta' = "flap"   /\ UNCHANGED <<plan, recalled, dag>>
+ActCtaNormal == /\ plan = "anti_impulse" /\ cta = "unknown" /\ cta' = "normal" /\ UNCHANGED <<plan, recalled, dag>>
+```
+::end
+
+::node [id=act-surgery type=action cf=+1.00 scope=clinician]
+::dense intervene|open-aortic-repair|when-dissection=+1.00|oracle=human
+->[:requires] find-cta, hyp-dissection, msg-edit-post-cta
+```tla
+ActSurgery ==
+  /\ plan = "anti_impulse" /\ "edit_post_cta" \in dag /\ CfHypDissection = 100
+  /\ DagEdgeOk(1, 2)
+  /\ plan' = LensEdit("accept", "human", "intranet", "ble", recalled, CfHypDissection = 100, plan, "surgery")
+  /\ dag' = dag \cup {"accept_post_cta"}
+  /\ UNCHANGED <<cta, recalled>>
+```
+::end
+
+::node [id=act-heparin type=action cf=+1.00 scope=clinician]
+::dense intervene|heparin+cath|when-dissection<-0.80|oracle=human
+->[:requires] find-cta, hyp-acs, hyp-dissection, msg-edit-post-cta
+```tla
+ActHeparin ==
+  /\ plan = "anti_impulse" /\ "edit_post_cta" \in dag /\ CfHypAcs > TauPos /\ CfHypDissection < TauNeg
+  /\ DagEdgeOk(1, 2)
+  /\ plan' = LensEdit("accept", "human", "intranet", "ble", recalled, CfHypDissection < TauNeg, plan, "heparin")
+  /\ dag' = dag \cup {"accept_post_cta"}
+  /\ UNCHANGED <<cta, recalled>>
+```
+::end
+
+::node [id=inv-anticoag-gate type=invariant cf=+1.00 scope=all kind=safety]
+::dense safety|heparin-requires-dissection-ruled-out
+->[:requires] hyp-dissection, find-cta
+```tla
+InvAnticoagGate == (plan = "heparin") => (CfHypDissection < TauNeg)
+```
+::end
+
+::node [id=inv-mesh-oracle type=invariant cf=+1.00 scope=all kind=safety]
+::dense safety|intranet-ble|sheaf-recalled|dag-acyclic|human-oracle
+->[:requires] sec-ward, msg-survey, msg-edit-esmolol, msg-accept-esmolol
+```tla
+InvOracleGate == (plan /= "triage") => (recalled = TRUE /\ "accept_esmolol" \in dag)
+InvDagOrder   ==
+  /\ ("edit_esmolol" \in dag => "survey" \in dag)
+  /\ ("hold_heparin" \in dag => "survey" \in dag)
+  /\ ("accept_esmolol" \in dag => "edit_esmolol" \in dag)
+  /\ ("accept_post_cta" \in dag => "edit_post_cta" \in dag)
+```
+::end
+
 ::node [id=__view type=meta cf=+1.00 scope=all]
-::dense mermaid|stateDiagram-v2
+::dense mermaid|stateDiagram-v2+flowchart
+```mermaid
+stateDiagram-v2
+  direction LR
+  [*] --> Triage: WardRecall + msg-survey [CF(dissection)=+0.80, CF(acs)=+0.75]
+  Triage --> AntiImpulse: msg-accept-esmolol (oracle=human) / act-esmolol
+  AntiImpulse --> Flap: act-cta (flap => CF +1.00)
+  AntiImpulse --> Normal: act-cta (normal => CF -0.90)
+  Flap --> Surgery: oracle=human / act-surgery
+  Normal --> Heparin: oracle=human / act-heparin [CF(dissection) < -0.80]
+  Triage --> PrematureHeparin: unaccepted or unguarded heparin (breaks InvAnticoagGate, InvOracleGate)
+  classDef breaks fill:#ffecee,stroke:#e72e3b,stroke-width:2.5px,color:#cd2834
+  class PrematureHeparin breaks
+```
+```mermaid
+flowchart LR
+  nurseSec[sec-nurse] -->|sheafGlue| ward[sec-ward]
+  clinSec[sec-clin] -->|sheafGlue| ward
+  ward --> survey[msg-survey: optic]
+  survey --> editEsm[msg-edit-esmolol: lens]
+  survey --> holdHep[msg-hold-heparin: lens]
+  editEsm --> acceptEsm[msg-accept-esmolol: oracle=human]
+  acceptEsm --> actEsm[act-esmolol]
+  holdHep -. held: no oracle accept .-> actHep[act-heparin]
+```
 ::end
+````
 
-::node [id=__steer type=meta cf=+1.00 scope=all]
-::dense mermaid|flowchart
-::end
-```
-</details>
-
-### 8. Organization and folded templates
-
-The expanded Prolog projection below fixes the blue-team ward mesh (`agent_fleet`): `nurse` originates observations, `relay` forwards coded BLE frames to `orch`, `nurse` and `orch` both feed `recall` (sheaf glue), `orch` and `recall` both feed `clinician` (human oracle), and `clinician` emits the accepted transition at `steer`. No executable scripts are committed to this repository; the collapsible cells below fold the cybernetics `AI2A`/`A2H` interface, the red-team falsifier swarm, the Python codec/sheaf/lens guide, the type-safe Rust organization, and the attack manifest into Markdown so a frontier model can materialize them at test time.
-
-```prolog { type: notebook.cell }
-image(agent_fleet).
-shape(dag).
-node(clinician).
-node(nurse).
-node(orch).
-node(recall).
-node(relay).
-node(steer).
-edge(clinician, steer).
-edge(nurse, recall).
-edge(nurse, relay).
-edge(orch, clinician).
-edge(orch, recall).
-edge(recall, clinician).
-edge(relay, orch).
+```mermaid
+stateDiagram-v2
+  direction LR
+  [*] --> Triage: WardRecall + msg-survey [CF(dissection)=+0.80, CF(acs)=+0.75]
+  Triage --> AntiImpulse: msg-accept-esmolol (oracle=human) / act-esmolol
+  AntiImpulse --> Flap: act-cta (flap => CF +1.00)
+  AntiImpulse --> Normal: act-cta (normal => CF -0.90)
+  Flap --> Surgery: oracle=human / act-surgery
+  Normal --> Heparin: oracle=human / act-heparin [CF(dissection) < -0.80]
+  Triage --> PrematureHeparin: unaccepted or unguarded heparin (breaks InvAnticoagGate, InvOracleGate)
+  classDef breaks fill:#ffecee,stroke:#e72e3b,stroke-width:2.5px,color:#cd2834
+  class PrematureHeparin breaks
 ```
 
-<details>
-<summary>cybernetics interface</summary>
-
-```typescript { type: notebook.cell }
-export type Channel = "AI2A" | "A2H";
-export type MessageKind = "survey" | "inspect" | "edit" | "accept";
-export type Principal = "human" | "agent";
-export type Egress = "intranet";
-
-export interface SurveyOptic<Focus> {
-  readonly kind: "survey";
-  readonly get: Focus;
-  readonly warnings: readonly string[];
-}
-
-export interface PlanLens<State, Focus> {
-  readonly inspect: (state: State) => Focus;
-  readonly edit: (state: State, next: Focus) => State;
-  readonly residual: readonly string[];
-}
-
-export interface FrontierTurn<Payload> {
-  readonly channel: "AI2A";
-  readonly egress: Egress;
-  readonly radio: "ble";
-  readonly ttl: 1 | 2 | 3 | 4 | 5 | 6 | 7;
-  readonly parents: readonly string[];
-  readonly kind: "survey" | "inspect" | "edit";
-  readonly peer: string;
-  readonly payload: Payload;
-}
-
-export interface OraclePage<Focus> {
-  readonly channel: "A2H";
-  readonly egress: Egress;
-  readonly radio: "ble";
-  readonly replaces: "pager";
-  readonly ack: true;
-  readonly parents: readonly [string, ...string[]];
-  readonly kind: "accept";
-  readonly oracle: "human";
-  readonly peer: string;
-  readonly accept: Focus;
-}
+```mermaid
+flowchart LR
+  nurseSec[sec-nurse] -->|sheafGlue| ward[sec-ward]
+  clinSec[sec-clin] -->|sheafGlue| ward
+  ward --> survey[msg-survey: optic]
+  survey --> editEsm[msg-edit-esmolol: lens]
+  survey --> holdHep[msg-hold-heparin: lens]
+  editEsm --> acceptEsm[msg-accept-esmolol: oracle=human]
+  acceptEsm --> actEsm[act-esmolol]
+  holdHep -. held: no oracle accept .-> actHep[act-heparin]
 ```
-</details>
 
-<details>
-<summary>template: prolog</summary>
+## 6. Falsification
 
-```prolog { type: notebook.cell }
-image(agent_swarm).
-shape(dag).
-node(decide).
-node(grammar).
-node(imprint).
-node(oracle).
-node(recall).
-node(steer).
-edge(decide, steer).
-edge(grammar, decide).
-edge(imprint, decide).
-edge(oracle, decide).
-edge(oracle, steer).
-edge(recall, decide).
-```
-</details>
-
-<details>
-<summary>template: python</summary>
-
-```python { type: notebook.cell }
-from functools import reduce
-
-def gf_mul(a: int, b: int) -> int:
-    p, a, b = 0, a & 0xFF, b & 0xFF
-    for _ in range(8):
-        if b & 1:
-            p ^= a
-        hi = a & 0x80
-        a = ((a << 1) & 0xFF) ^ (0x1B if hi else 0)
-        b >>= 1
-    return p
-
-def gf_inv(a: int) -> int:
-    if a == 0:
-        raise ValueError("zero")
-    r, base, exp = 1, a & 0xFF, 254
-    while exp:
-        if exp & 1:
-            r = gf_mul(r, base)
-        base, exp = gf_mul(base, base), exp >> 1
-    return r
-
-def rlnc_encode(symbols: list[int], coeffs: list[list[int]]) -> list[int]:
-    return [reduce(lambda x, y: x ^ y, (gf_mul(c, s) for c, s in zip(row, symbols)), 0) for row in coeffs]
-
-def rlnc_decode_2x2(rows: list[tuple[int, int]], payloads: list[int]) -> tuple[int, int] | None:
-    (a, b), (c, d) = rows
-    det = gf_mul(a, d) ^ gf_mul(b, c)
-    if det == 0:
-        return None
-    inv = gf_inv(det)
-    return (
-        gf_mul(gf_mul(inv, d), payloads[0]) ^ gf_mul(gf_mul(inv, b), payloads[1]),
-        gf_mul(gf_mul(inv, c), payloads[0]) ^ gf_mul(gf_mul(inv, a), payloads[1]),
-    )
-
-def rice_encode_set(ids: list[int], k: int = 2) -> str:
-    if any(ids[i] >= ids[i + 1] for i in range(len(ids) - 1)):
-        raise ValueError("non-increasing")
-    m, prev, out = 1 << k, -1, []
-    for idx in ids:
-        q, r = divmod(idx - (prev + 1), m)
-        out.append("1" * q + "0" + format(r, f"0{k}b"))
-        prev = idx
-    return "".join(out)
-
-def glue_ward(nurse: dict[str, str], clin: dict[str, str]) -> dict[str, str] | None:
-    if nurse.get("cta") != clin.get("cta") or nurse.get("cta") == "out":
-        return None
-    if nurse.get("trop") != "out" or clin.get("pain") != "out":
-        return None
-    if nurse.get("pain") == "out" or clin.get("trop") == "out":
-        return None
-    return {"pain": nurse["pain"], "cta": nurse["cta"], "trop": clin["trop"]}
-
-def apply_steer(kind: str, oracle: str, egress: str, plan: str, target: str, cf_dissection: int) -> str:
-    if egress != "intranet" or (kind == "accept" and oracle != "human"):
-        raise ValueError("refused")
-    if kind == "accept" and oracle == "human" and (target != "heparin" or cf_dissection < -80):
-        return target
-    return plan
-```
-</details>
-
-<details>
-<summary>template: rust</summary>
-
-```rust { type: notebook.cell }
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum AgentId {
-    Clinician,
-    Decide,
-    Grammar,
-    Imprint,
-    Nurse,
-    Oracle,
-    Orch,
-    Recall,
-    Relay,
-    Steer,
-}
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum Role {
-    Peer,
-    Worker,
-    Join,
-    Sink,
-}
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum Capability {
-    BleFrame,
-    CodedSymbol,
-    RiceQuery,
-    LocalSection,
-    SurveyOptic,
-    PlanLens,
-    HumanAccept,
-    Verdict,
-    ChartState,
-}
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum ActionKind {
-    Started,
-    Surveyed,
-    Queried,
-    Glued,
-    Proposed,
-    Accepted,
-    Refused,
-    Completed,
-}
-
-pub struct Edge {
-    pub from: AgentId,
-    pub to: AgentId,
-}
-
-pub struct Organization {
-    pub name: &'static str,
-    pub sink: AgentId,
-    pub edges: &'static [Edge],
-}
-
-pub const WARD_FLEET: Organization = Organization {
-    name: "agent_fleet",
-    sink: AgentId::Steer,
-    edges: &[
-        Edge { from: AgentId::Nurse, to: AgentId::Relay },
-        Edge { from: AgentId::Nurse, to: AgentId::Recall },
-        Edge { from: AgentId::Relay, to: AgentId::Orch },
-        Edge { from: AgentId::Orch, to: AgentId::Recall },
-        Edge { from: AgentId::Recall, to: AgentId::Clinician },
-        Edge { from: AgentId::Orch, to: AgentId::Clinician },
-        Edge { from: AgentId::Clinician, to: AgentId::Steer },
-    ],
-};
-
-pub const CHART_SWARM: Organization = Organization {
-    name: "agent_swarm",
-    sink: AgentId::Steer,
-    edges: &[
-        Edge { from: AgentId::Grammar, to: AgentId::Decide },
-        Edge { from: AgentId::Imprint, to: AgentId::Decide },
-        Edge { from: AgentId::Recall, to: AgentId::Decide },
-        Edge { from: AgentId::Oracle, to: AgentId::Decide },
-        Edge { from: AgentId::Decide, to: AgentId::Steer },
-        Edge { from: AgentId::Oracle, to: AgentId::Steer },
-    ],
-};
-```
-</details>
-
-<details>
-<summary>attacks</summary>
-
-```json { type: notebook.cell }
-{
-  "attacks": [
-    {"worker": "imprint", "id": "internet-egress", "premise": "egress is intranet only", "prediction": "hopOk .internet = false and file is refused"},
-    {"worker": "imprint", "id": "nostr-relay-hop", "premise": "bitchat internet relays are excluded", "prediction": "non-BLE hop fails imprint admission"},
-    {"worker": "imprint", "id": "ttl-zero-relay", "premise": "TTL 0 frames never relay", "prediction": "relay 0 = 0"},
-    {"worker": "imprint", "id": "pager-vertex", "premise": "replaces=pager names a channel, not a node type", "prediction": "grammar rejects type=pager"},
-    {"worker": "oracle", "id": "agent-accept", "premise": "only a human oracle may author kind=accept", "prediction": "acceptWell .agent = false"},
-    {"worker": "oracle", "id": "unaccepted-edit", "premise": "an edit lens without human accept leaves plan unchanged", "prediction": "apply .edit true .triage .anti 80 = .triage"},
-    {"worker": "oracle", "id": "boundary-heparin-minus-80", "premise": "heparin requires dissection centi-CF strictly below -80", "prediction": "apply .accept true .anti .heparin (-80) = .anti"},
-    {"worker": "oracle", "id": "survey-carries-put", "premise": "a survey optic has no put", "prediction": "carriesPut .survey = false"},
-    {"worker": "recall", "id": "rank-deficient-rlnc", "premise": "row 01 00 drops s1", "prediction": "coded 0x01 0x00 0x00 0x50 = coded 0x01 0x00 0x00 0x11"},
-    {"worker": "recall", "id": "unsorted-golomb-set", "premise": "missing packet ids are strictly increasing", "prediction": "strictly [3, 0] = false"},
-    {"worker": "recall", "id": "clashing-cta-glue", "premise": "disagreeing overlap slots refuse to glue", "prediction": "glue secNurse secClash = none"},
-    {"worker": "recall", "id": "idempotent-restriction", "premise": "repeated restriction does not invent out-of-open findings", "prediction": "restrict .nurse (restrict .nurse sWard) = secNurse"},
-    {"worker": "grammar", "id": "message-rank-cycle", "premise": "message :requires edges strictly increase rank", "prediction": "dagOk badParents = false"},
-    {"worker": "grammar", "id": "skipped-survey-warning", "premise": "survey preserves attached ::warning flags", "prediction": "(opticSplit s).2.warnCta = s.warnCta"}
-  ]
-}
-```
-</details>
-
-## Citations
-
-| Pin | Supports |
-|---|---|
-| [CommonMark `0.31.2`](https://spec.commonmark.org/0.31.2/) | Markdown superset and heading/fence structure |
-| [Cursor `statechart`](https://github.com/cursor/plugins/tree/main/pstack/skills/statechart) | Harel/TLA+ statechart verification and `.mermaid` projection |
-| [M. Dubey, *ObjectGraph* (`arXiv:2604.27820v1`)](https://arxiv.org/html/2604.27820v1) | `::index`, `::dense`, `::warning`, and scoped graph traversal |
-| [P. Norvig, *PAIP* Ch. 16 (`cl-aip/mycin`)](https://github.com/cl-aip/mycin) | Bipolar MYCIN certainty-factor algebra |
-| [T. Ho et al., *IEEE Trans. Inf. Theory* 52(10), 2006](https://doi.org/10.1109/TIT.2006.881746) | Random linear network coding over finite fields |
-| [S. W. Golomb, *IEEE Trans. Inf. Theory* 12(3), 1966](https://doi.org/10.1109/TIT.1966.1053907) | Run-length and geometric gap coding (with Rice \(M = 2^k\) specialization) |
-| [S. Mac Lane & I. Moerdijk, *Sheaves in Geometry and Logic*, 1992](https://doi.org/10.1007/978-1-4612-0927-0) | Presheaf restriction and sheaf gluing over local opens |
-| [M. Riley, *Categories of Optics* (`arXiv:1809.00738`)](https://arxiv.org/abs/1809.00738) | Concrete and profunctor optics (`split`/`rejoin`) for `survey` |
-| [J. N. Foster et al., *ACM TOPLAS* 29(3), 2007](https://doi.org/10.1145/1232420.1232424) | Bidirectional lenses (`GetPut`, `PutGet`, `PutPut`) for `inspect`/`edit` |
-| [*bitchat* Protocol Whitepaper v2.0](https://github.com/permissionlesstech/bitchat/blob/main/WHITEPAPER.md) | Intranet BLE GATT mesh, `Noise_XX`/`Noise_X` sealing, TTL flood/routing |
-| [Pager (Wikipedia)](https://en.wikipedia.org/wiki/Pager) | Legacy one-way clinical paging channel superseded by BLE `channel=page` |
-
-Retrieved 14 Nov 2026 (Australia/Sydney). Lean 4.35.0 discharged `Ti`, `cf_laws`, `golomb_036`, `rlnc_gen0`, `sheaf_ward`, `lens_oracle`, and `message_dag` the same day. Representation only.
-
-## Falsification
+Each row is a challenge. The failure signal is what a conforming read returns.
 
 | Challenge | Failure signal |
 |---|---|
-| Set `egress = internet` or route a frame through a Nostr relay | `hopOk .internet = false`; the file is refused |
-| Author `kind = accept` with `oracle = agent` | `acceptWell .agent = false`; `Ti` refuses |
-| Emit `msg-edit` or `msg-hold` with no human `msg-accept` | `plan` stays `triage` |
-| Accept `heparin` at dissection centi-certainty `+80` or `-80` | `plan` stays `anti_impulse`; the bound `< -80` is strict |
-| Treat the `-90` row as a clinical order to administer heparin | `DISCLAIMER` governs; the token is a state in a synthetic model |
-| Decode generation `0` from rank-deficient row `01 00` | `s1` is undetermined (`0x00` matches both `0x50` and `0x11`) |
-| Decode `000010010` to anything other than `{0, 3, 6}` or query `{3, 0}` | `golomb_036` pins `[0, 3, 6]`; `strictly [3, 0] = false` |
-| Glue `sec-nurse` with a clinician section whose `cta` slot is `pos` | `glue secNurse secClash = none`; `plan` holds |
-| Restrict `sec-ward` to `nurse` twice and expect `troponin` to reappear | restriction is idempotent; `troponin` stays `out` |
-| Drop `::warning` from `msg-survey` or mutate `cta` during a `plan` lens `edit` | `opticLensOk` fails on residual preservation |
-| Attach a `put` clause to a `survey` optic | `carriesPut .survey = false`; ill-formed survey |
-| Add a `:requires` edge from `msg-survey` to `msg-accept` | `dagOk badParents = false`; rank cycle refused |
-| Treat `peer-orch` storing coded packet `id-2` as an oracle accept | packet storage is transport, not `kind = accept` |
-| Add a `pager` node type or commit standalone `.py`/`.rs` scripts to the repo | grammar refuses `type=pager`; all templates stay folded in `chart.md` |
+| Set `egress = internet`, route over a Nostr relay, or transmit on `legacyPager` | Grammar rejects non-`intranet`/`ble` attributes; `hopAdmitted .internet .ble 7 = false` and `hopAdmitted .intranet .legacyPager 7 = false`. |
+| Relay a BLE frame at `ttl = 0` or introduce a `type=pager` hardware node | `hopAdmitted .intranet .ble 0 = false` and `relayTtl 0 = 0`; grammar rejects `type=pager` (`replaces = pager` names the channel). |
+| Decode RLNC generation `0` from rank-deficient rows `[01, 00]` and `[02, 00]`, or fail after in-flight relay recoding | `rlncDecode 2` returns `none` on collinear rows and recovers `[[0x00, 0x2c], [0x50, 0x44]]` from `[pktNurse, pktRelay]` (`pktRelay = rlncRecode [0x02, 0x07] [pktNurse, pktOrch]`). |
+| Query unsorted missing packet ids `[3, 0]`, or confuse Golomb `M = 3` with Golomb-Rice `M = 4` on `[0, 3, 6]` | `golombEncodeSet 4 [3, 0] = none`; `[0, 3, 6]` encodes to 9-bit `000010010` at `M = 4` and 8-bit `00011011` at `M = 3`, with exact round-trip across `0..31`. |
+| Glue `sec-nurse` (`cta = zero`) with a clashing clinician section (`cta = pos`), or restrict twice to recover `troponin` | `sheafGlue nurseSec ⟨.out, .pos, .pos⟩ = none`; `restrictSec .nurse` is idempotent (`troponin` stays `.out`). |
+| Attach a `put` operation to `survey`, strip `::warning` during `opticCompose`, or mutate `cta` during a `plan` lens `edit` | `carriesPut .survey = false`; `opticLensWellBehaved` proves `GetPut`, `PutGet`, `PutPut`, and exact `cta`/`warnCta` preservation across all state pairs. |
+| Add a `:requires` cycle (`msg-survey -> msg-accept-esmolol`) | `dagAcyclic` returns `false` on `cyclicParents`; TLC `InvDagOrder` rejects out-of-order delivery. |
+| Author `kind = accept` with `oracle = agent`, or apply `msg-edit-esmolol` without human acceptance | Grammar restricts `oracle=` to `"human"`; `steerApply` with `.edit` or `.agent` leaves `plan = .triage`, and TLC `InvOracleGate` holds across all 20 reachable states. |
+| Accept `act-heparin` at dissection centi-certainty `+80` or boundary `-80` | `steerApply` holds `plan = .antiImpulse` at `+80` and `-80` (`< -80` is strict) and admits `.heparin` only after negative CTA overturns `CfHypDissection` to `-90` (`InvAnticoagGate`). |
+| Collapse unknown (`cf = 0.00`) into negation, or read an accepted model transition as a clinical order | `validChart` separates `.affirmed`, `.negated`, `.unknown`, and `.breaks`; `DISCLAIMER` governs every read and rendered output. |
 
-## Licence
+`cf_laws`, `rlnc_laws`, `golomb_laws`, `sheaf_laws`, and `steering_laws` (`Lean 4.35.0`), together with `TypeOK`, `InvAnticoagGate`, `InvOracleGate`, and `InvDagOrder` (`SANY` + `TLC2`), are the discharged checks.
 
-MIT
+## References
+
+1. [Cursor `statechart`](https://github.com/cursor/plugins/tree/main/pstack/skills/statechart)
+2. M. Dubey, [*ObjectGraph* (`arXiv:2604.27820v1`)](https://arxiv.org/html/2604.27820v1), 2026.
+3. P. Norvig, [*PAIP* Ch. 16 (`cl-aip/mycin`)](https://github.com/cl-aip/mycin), 1991.
+4. permissionlesstech, [*bitchat Protocol Whitepaper* v2.0](https://github.com/permissionlesstech/bitchat/blob/main/WHITEPAPER.md), 2026; supersedes one-way [clinical paging](https://en.wikipedia.org/wiki/Pager).
+5. T. Ho, M. Médard, R. Koetter, D. R. Karger, M. Effros, J. Shi, and B. Leong, ["A Random Linear Network Coding Approach to Multicast"](https://doi.org/10.1109/TIT.2006.881746), *IEEE Transactions on Information Theory* 52(10) (2006) 4413–4430.
+6. S. W. Golomb, ["Run-Length Encodings"](https://doi.org/10.1109/TIT.1966.1053907), *IEEE Transactions on Information Theory* 12(3) (1966) 399–401; R. F. Rice, *Some Practical Universal Noiseless Coding Techniques*, JPL Publication 79-22, 1979.
+7. S. Mac Lane and I. Moerdijk, [*Sheaves in Geometry and Logic*](https://doi.org/10.1007/978-1-4612-0927-0), Springer, 1992.
+8. M. Riley, [*Categories of Optics* (`arXiv:1809.00738`)](https://arxiv.org/abs/1809.00738), 2018.
+9. J. N. Foster, M. B. Greenwald, J. T. Moore, B. C. Pierce, and A. Schmitt, ["Combinators for Bidirectional Tree Transformations: A Linguistic Approach to the View-Update Problem"](https://doi.org/10.1145/1232420.1232424), *ACM TOPLAS* 29(3) (2007) Article 17.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
